@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo } from 'next/font/google'
+import { Archivo } from "next/font/google";
 
 import "./globals.css";
 
@@ -8,8 +8,9 @@ const archivo = Archivo({
 });
 
 export const metadata: Metadata = {
-  title: "Bepic Shopping",
-  description: "A network marketing business where distributors can grow with us",
+  title: "Energy888",
+  description:
+    "A network marketing business where distributors can grow with us",
 };
 
 export default function RootLayout({
@@ -19,9 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${archivo.variable}`}>
-        {children}
-      </body>
+      <body className={`${archivo.variable}`}>{children}</body>
     </html>
   );
 }
