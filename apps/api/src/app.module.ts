@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { TypeOrmConfigService } from './typeorm-config.service';
 import { AuthModule } from './auth/auth.module';
+import { SeederModule } from './seeder/seeder.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { AuthModule } from './auth/auth.module';
       useClass: TypeOrmConfigService,
     }),
     AuthModule,
+    SeederModule,
   ],
   controllers: [AppController],
   providers: [],
