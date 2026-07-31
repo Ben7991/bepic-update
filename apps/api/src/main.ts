@@ -21,7 +21,7 @@ async function bootstrap() {
     .setDescription('A network marketing service')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, document);
+  SwaggerModule.setup('api/docs', app, document);
 
   await app.listen(PORT ?? 8000);
 }
