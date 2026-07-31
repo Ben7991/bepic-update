@@ -4,14 +4,27 @@ import { DataSource, QueryRunner, SelectQueryBuilder } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { Role } from '../auth.types';
 
+/**
+ * Handles all communication to the `users` table in the database
+ */
 @Injectable()
 export class UserRepository {
   constructor(private readonly _dataSource: DataSource) {}
 
+  /**
+   * Returns a queryBuilder for communicating to the `users` table
+   * @returns a user queryBuilder
+   */
   private _createQueryBuilder(): SelectQueryBuilder<User> {
     return this._dataSource.createQueryBuilder(User, 'users');
   }
 
+  /**
+   * Adds a new user row in the `users` table
+   * @param {QueryRunner} queryRunner
+   * @param {Omit<User, 'status' | 'id'>} data
+   * @returns a user object representing a row in the users table
+   */
   async create(queryRunner: QueryRunner, data: Omit<User, 'status' | 'id'>) {
     const user = new User();
     user.id = await this._generateNextForRoleId(data.role);
@@ -22,6 +35,11 @@ export class UserRepository {
     return await queryRunner.manager.save(user);
   }
 
+  /**
+   * Generates a user id based on the provided preferred user role
+   * @param {Role} role - The preferred user role
+   * @returns the generated user id for the next user row
+   */
   private async _generateNextForRoleId(role: Role): Promise<string> {
     const increment = 1;
     const seed = 10_000_000;
@@ -34,6 +52,12 @@ export class UserRepository {
     return `${initials}${seed + totalUsersWithRole + increment}`;
   }
 
+  /**
+   * Retrieves a user object from the `users` table or null
+   * if the provided data isn't mapped to any column in the table
+   * @param {string} data
+   * @returns a user object or null
+   */
   find(data: string): Promise<User | null> {
     return this._createQueryBuilder()
       .where('id=:id')
