@@ -18,6 +18,7 @@ import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
 import { DataMessageInterceptor } from '../utils/interceptors/data-message.interceptor';
 import { swaggerLoginResponse } from './auth.swagger';
+import { TokenType } from './auth.types';
 
 /**
  * Handles all user authentication request
@@ -25,10 +26,7 @@ import { swaggerLoginResponse } from './auth.swagger';
 @Controller('auth')
 export class AuthController {
   private readonly _refreshTokenDuration = 60 * 60 * 12 * 1000;
-  private readonly _refreshTokenKey = '_ref-tk';
-
   private readonly _accessTokenDuration = 60 * 15 * 1000;
-  private readonly _accessTokenKey = '_acc-tk';
 
   constructor(
     private readonly _authService: AuthService,
@@ -46,7 +44,7 @@ export class AuthController {
     accessToken?: string,
     duration?: number,
   ): void {
-    res.cookie(this._accessTokenKey, accessToken ?? '', {
+    res.cookie(`_${TokenType.ACCESS_TOKEN}`, accessToken ?? '', {
       path: '/',
       maxAge: duration ?? 0,
       domain: this._configService.get('domain'),
@@ -64,7 +62,7 @@ export class AuthController {
     refreshToken?: string,
     duration?: number,
   ): void {
-    res.cookie(this._refreshTokenKey, refreshToken ?? '', {
+    res.cookie(`_${TokenType.REFRESH_TOKEN}`, refreshToken ?? '', {
       path: '/',
       httpOnly: true,
       maxAge: duration ?? 0,

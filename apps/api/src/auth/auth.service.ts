@@ -11,7 +11,7 @@ import { UserRepository } from './repositories/user.repository';
 import { LoginDto } from './dto/login.dto';
 import { EncryptionService } from './encryption.service';
 import { ApplicationException } from '../utils/exception/application.exception';
-import { LoginType, Status } from './auth.types';
+import { LoginType, Status, TokenType } from './auth.types';
 import { AppLogger } from '../utils/logger/app.logger';
 
 @Injectable()
@@ -43,11 +43,12 @@ export class AuthService {
         throw new ApplicationException('Invalid username and or password');
       }
 
-      const refreshToken = this._generateRefreshToken(existingUser.id);
-      const encryptedRefreshToken =
-        this._encryptionService.encrypt(refreshToken);
-      const accessToken = this._generateAccessToken(refreshToken);
-      const encryptedAccessToken = this._encryptionService.encrypt(accessToken);
+      const encryptedRefreshToken = this._encryptionService.encrypt(
+        this._generateRefreshToken(existingUser.id),
+      );
+      const encryptedAccessToken = this._encryptionService.encrypt(
+        this._generateAccessToken(existingUser.id),
+      );
 
       return {
         user: existingUser,
@@ -90,10 +91,14 @@ export class AuthService {
    * @returns a generated access token
    */
   private _generateAccessToken(payload: string): string {
-    return sign({ sub: payload }, this._getSecretKey(), {
-      algorithm: 'HS256',
-      expiresIn: '15m',
-    });
+    return sign(
+      { sub: payload, type: TokenType.ACCESS_TOKEN },
+      this._getSecretKey(),
+      {
+        algorithm: 'HS256',
+        expiresIn: '15m',
+      },
+    );
   }
 
   /**
@@ -103,9 +108,13 @@ export class AuthService {
    * @returns the refresh token
    */
   private _generateRefreshToken(payload: string): string {
-    return sign({ sub: payload }, this._getSecretKey(), {
-      algorithm: 'HS256',
-      expiresIn: '12h',
-    });
+    return sign(
+      { sub: payload, type: TokenType.REFRESH_TOKEN },
+      this._getSecretKey(),
+      {
+        algorithm: 'HS256',
+        expiresIn: '12h',
+      },
+    );
   }
 }

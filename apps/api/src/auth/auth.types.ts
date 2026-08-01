@@ -17,3 +17,8 @@ export type LoginType = {
     refreshToken: string;
   };
 };
+
+export enum TokenType {
+  ACCESS_TOKEN = 'acc-tk',
+  REFRESH_TOKEN = 'ref-tk',
+}
