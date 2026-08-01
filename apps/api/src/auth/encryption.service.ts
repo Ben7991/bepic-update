@@ -49,7 +49,7 @@ export class EncryptionService {
   } {
     return {
       algorithm: 'aes-256-gcm',
-      bufferKey: this._configService.get<string>('bufferKey') as string,
+      bufferKey: this._configService.get<string>('BUFFER_KEY') as string,
     };
   }
 }
