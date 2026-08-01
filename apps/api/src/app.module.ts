@@ -6,7 +6,6 @@ import { AppController } from './app.controller';
 import { TypeOrmConfigService } from './typeorm-config.service';
 import { AuthModule } from './auth/auth.module';
 import { SeederModule } from './seeder/seeder.module';
-import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
@@ -18,7 +17,6 @@ import { SharedModule } from './shared/shared.module';
     }),
     AuthModule,
     SeederModule,
-    SharedModule,
   ],
   controllers: [AppController],
   providers: [],
