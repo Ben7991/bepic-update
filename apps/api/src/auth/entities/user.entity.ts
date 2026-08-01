@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 import { Role, Status } from '../auth.types';
 
@@ -16,9 +17,11 @@ export class User {
   @Column({
     unique: true,
   })
+  @Exclude()
   username: string;
 
   @Column()
+  @Exclude()
   password: string;
 
   @Column({
@@ -26,6 +29,7 @@ export class User {
     enum: Status,
     default: Status.ACTIVE,
   })
+  @Exclude()
   status: Status;
 
   @Column({
