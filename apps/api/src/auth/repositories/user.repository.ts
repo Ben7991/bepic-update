@@ -25,7 +25,10 @@ export class UserRepository {
    * @param {Omit<User, 'status' | 'id'>} data
    * @returns a user object representing a row in the users table
    */
-  async create(queryRunner: QueryRunner, data: Omit<User, 'status' | 'id'>) {
+  async create(
+    queryRunner: QueryRunner,
+    data: Omit<User, 'status' | 'id'>,
+  ): Promise<User> {
     const user = new User();
     user.id = await this._generateNextForRoleId(data.role);
     user.name = data.name;
@@ -50,6 +53,24 @@ export class UserRepository {
       },
     });
     return `${initials}${seed + totalUsersWithRole + increment}`;
+  }
+
+  /**
+   * Updates a user name, password and status in the database
+   * @param {QueryRunner} queryRunner
+   * @param {User} user
+   * @param {Pick<User, 'name' | 'password' | 'status'>} data
+   * @returns a user with changed details
+   */
+  async update(
+    queryRunner: QueryRunner,
+    user: User,
+    data: Pick<User, 'name' | 'password' | 'status'>,
+  ): Promise<User> {
+    user.name = data.name;
+    user.password = data.password;
+    user.status = data.status;
+    return await queryRunner.manager.save(user);
   }
 
   /**
