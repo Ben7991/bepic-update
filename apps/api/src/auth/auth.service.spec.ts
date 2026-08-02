@@ -17,6 +17,25 @@ import { LoginDto } from './dto/login.dto';
 import { Status, TokenType } from './auth.types';
 import { User } from './entities/user.entity';
 
+jest.mock('bcryptjs');
+jest.mock('jsonwebtoken');
+
+const mockedUser = {
+  id: '12345',
+  name: 'user',
+} as unknown as User;
+
+const mockedPersonalInfo = {
+  name: mockedUser.name,
+};
+
+const mockedPasswordInfo = {
+  newPassword: 'password',
+  confirmPassword: 'password',
+};
+
+const mockedSecretKey = 'secret-key';
+
 describe('AuthService', () => {
   let authService: AuthService;
   let userRepository: UserRepository;
@@ -39,21 +58,21 @@ describe('AuthService', () => {
         {
           provide: UserRepository,
           useValue: {
-            find: () => jest.fn(),
-            update: () => jest.fn(),
+            find: jest.fn(),
+            update: jest.fn(),
           },
         },
         {
           provide: EncryptionService,
           useValue: {
-            encrypt: () => jest.fn(),
-            decrypt: () => jest.fn(),
+            encrypt: jest.fn(),
+            decrypt: jest.fn(),
           },
         },
         {
           provide: ConfigService,
           useValue: {
-            get: () => mockedQueryRunner,
+            get: jest.fn(),
           },
         },
         {
@@ -172,7 +191,14 @@ describe('AuthService', () => {
         .spyOn(encryptionService, 'encrypt')
         .mockReturnValue('***')
         .mockReturnValue('***');
-      jest.spyOn(configService, 'get');
+      jest.spyOn(configService, 'get').mockImplementation((token) => {
+        switch (token) {
+          case 'SECRET_KEY':
+            return mockedSecretKey;
+          default:
+            return '';
+        }
+      });
       jest.spyOn(userRepository, 'find').mockResolvedValue(mockedUserFromDb);
       await expect(authService.login(mockedLoginDto)).resolves.toEqual(
         mockedResponse,
@@ -186,7 +212,6 @@ describe('AuthService', () => {
   describe('refreshToken', () => {
     const mockedToken = 'abcd';
     const mockedDecryptedToken = 'abcd-12345';
-    const mockedSecretKey = 'secret-key';
 
     it('should throw if the token is undefined', async () => {
       const decryptSpy = jest.spyOn(encryptionService, 'decrypt');
@@ -295,11 +320,7 @@ describe('AuthService', () => {
     });
 
     it('should return a new access token', async () => {
-      const mockedUser = {
-        id: '1234',
-        name: 'user',
-      } as unknown as User;
-
+      const mockedEncryptedValue = 'encryt';
       const decryptSpy = jest
         .spyOn(encryptionService, 'decrypt')
         .mockReturnValue(mockedDecryptedToken);
@@ -321,6 +342,9 @@ describe('AuthService', () => {
               return '';
           }
         });
+      jest
+        .spyOn(encryptionService, 'encrypt')
+        .mockReturnValue(mockedEncryptedValue);
 
       await expect(
         authService.refreshToken(mockedToken),
@@ -334,14 +358,6 @@ describe('AuthService', () => {
   });
 
   describe('changePersonalInfo', () => {
-    const mockedUser = {
-      id: '12345',
-      name: 'user',
-    } as unknown as User;
-    const mockedPersonalInfo = {
-      name: mockedUser.name,
-    };
-
     it('should return a message after successful update', async () => {
       jest.spyOn(userRepository, 'update').mockResolvedValue(mockedUser);
       await expect(
@@ -358,6 +374,50 @@ describe('AuthService', () => {
       await expect(
         authService.changePersonalInfo(mockedPersonalInfo, mockedUser),
       ).rejects.toThrow();
+    });
+  });
+
+  describe('changePassword', () => {
+    it('should throw if salt rounds cannot be retrieved', async () => {
+      const genSaltSpy = jest.spyOn(bcryptjs, 'genSalt');
+      const hashSpy = jest.spyOn(bcryptjs, 'hash');
+      const updateSpy = jest.spyOn(userRepository, 'update');
+      const rollbackTransactionSpy = jest.spyOn(
+        mockedQueryRunner,
+        'rollbackTransaction',
+      );
+
+      await expect(
+        authService.changePassword(mockedPasswordInfo, mockedUser),
+      ).rejects.toThrow();
+      expect(genSaltSpy).not.toHaveBeenCalled();
+      expect(hashSpy).not.toHaveBeenCalled();
+      expect(updateSpy).not.toHaveBeenCalled();
+      expect(rollbackTransactionSpy).toHaveBeenCalled();
+    });
+
+    it('should return a message after successful password change', async () => {
+      const mockedSaltRounds = '5';
+      const configSpy = jest
+        .spyOn(configService, 'get')
+        .mockImplementation((token) => {
+          switch (token) {
+            case 'SALT_ROUNDS':
+              return mockedSaltRounds;
+            default:
+              return '';
+          }
+        });
+      const genSaltSpy = jest.spyOn(bcryptjs, 'genSalt');
+      jest.spyOn(userRepository, 'update').mockResolvedValue(mockedUser);
+
+      await expect(
+        authService.changePassword(mockedPasswordInfo, mockedUser),
+      ).resolves.toEqual({
+        message: 'Password changed successfully',
+      });
+      expect(configSpy).toHaveBeenCalled();
+      expect(genSaltSpy).toHaveBeenCalledWith(Number(mockedSaltRounds));
     });
   });
 });

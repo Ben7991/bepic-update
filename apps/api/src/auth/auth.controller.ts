@@ -21,6 +21,7 @@ import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
 import { DataMessageInterceptor } from '../utils/interceptors/data-message.interceptor';
 import {
+  swaggerChangePasswordResponse,
   swaggerChangePersonalInfoResponse,
   swaggerGetAuthenticatedUserResponse,
   swaggerLoginResponse,
@@ -29,6 +30,7 @@ import { TokenType } from './auth.types';
 import { AuthGuard } from './guards/auth.guard';
 import { DataOnlyInterceptor } from '../utils/interceptors/data-only.interceptor';
 import { ChangePersonalDto } from './dto/change-personal.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 /**
  * Handles all user authentication request
@@ -180,7 +182,7 @@ export class AuthController {
   }
 
   /**
-   * Handles incoming request to user change personal information
+   * Handles incoming request to change user's personal information
    * @param {ChangePersonalDto} body
    * @returns
    */
@@ -194,5 +196,23 @@ export class AuthController {
     @Req() req: Request,
   ) {
     return this._authService.changePersonalInfo(body, req.user);
+  }
+
+  /**
+   * Handles incoming request to change user's password
+   * @param {ChangePasswordDto} body - The request body
+   * @param {Request} req - The incoming request object
+   * @returns a success message after change
+   */
+  @ApiOperation(swaggerChangePasswordResponse)
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('password')
+  changePassword(
+    @Body(ValidationPipe) body: ChangePasswordDto,
+    @Req() req: Request,
+  ) {
+    return this._authService.changePassword(body, req.user);
   }
 }

@@ -7,7 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { sign, verify } from 'jsonwebtoken';
-import { compare } from 'bcryptjs';
+import { compare, genSalt, hash } from 'bcryptjs';
 
 import { UserRepository } from './repositories/user.repository';
 import { LoginDto } from './dto/login.dto';
@@ -17,6 +17,7 @@ import { LoginType, Status, TokenType } from './auth.types';
 import { AppLogger } from '../utils/logger/app.logger';
 import { ChangePersonalDto } from './dto/change-personal.dto';
 import { User } from './entities/user.entity';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -185,6 +186,52 @@ export class AuthService {
       await queryRunner.release();
 
       return { message: 'Personal information changed successfully' };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+      throw new InternalServerErrorException('Something went wrong');
+    }
+  }
+
+  /**
+   * Change a user password
+   * @param {ChangePasswordDto} body - The new password info
+   * @param {User} user - The user requesting the change
+   */
+  async changePassword(
+    body: ChangePasswordDto,
+    user: User,
+  ): Promise<{ message: string }> {
+    if (!(body.newPassword === body.confirmPassword)) {
+      throw new BadRequestException('Passwords do not each other');
+    }
+
+    const queryRunner = this._dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const saltRounds = this._configService.get<string>('SALT_ROUNDS');
+
+      if (!saltRounds)
+        throw new Error('Salt rounds cannot be found in the list of secrets');
+
+      const salt = await genSalt(Number(saltRounds));
+      const hasedPassword = await hash(body.newPassword, salt);
+      await this._userRepo.update(queryRunner, user, {
+        name: user.name,
+        password: hasedPassword,
+        status: user.status,
+      });
+
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return { message: 'Password changed successfully' };
     } catch (error) {
       await queryRunner.rollbackTransaction();
       await queryRunner.release();
