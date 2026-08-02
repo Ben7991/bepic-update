@@ -2,23 +2,30 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
   Req,
   Res,
+  UseGuards,
   UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 
 import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
 import { DataMessageInterceptor } from '../utils/interceptors/data-message.interceptor';
-import { swaggerLoginResponse } from './auth.swagger';
+import {
+  swaggerGetAuthenticatedUserResponse,
+  swaggerLoginResponse,
+} from './auth.swagger';
 import { TokenType } from './auth.types';
+import { AuthGuard } from './guards/auth.guard';
+import { DataOnlyInterceptor } from '../utils/interceptors/data-only.interceptor';
 
 /**
  * Handles all user authentication request
@@ -44,7 +51,7 @@ export class AuthController {
     accessToken?: string,
     duration?: number,
   ): void {
-    res.cookie(`_${TokenType.ACCESS_TOKEN}`, accessToken ?? '', {
+    res.cookie(TokenType.ACCESS_TOKEN, accessToken ?? '', {
       path: '/',
       maxAge: duration ?? 0,
       domain: this._configService.get('domain'),
@@ -62,7 +69,7 @@ export class AuthController {
     refreshToken?: string,
     duration?: number,
   ): void {
-    res.cookie(`_${TokenType.REFRESH_TOKEN}`, refreshToken ?? '', {
+    res.cookie(TokenType.REFRESH_TOKEN, refreshToken ?? '', {
       path: '/',
       httpOnly: true,
       maxAge: duration ?? 0,
@@ -122,5 +129,20 @@ export class AuthController {
     this._setAccessTokenInCookie(res);
 
     return { message: 'Successfully logged out of the application' };
+  }
+
+  /**
+   * Returns the authenticated user using the refresh token
+   * @param {Request} req
+   * @returns properties of authenticated user
+   */
+  @ApiOperation(swaggerGetAuthenticatedUserResponse)
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @UseInterceptors(DataOnlyInterceptor)
+  @Get('user')
+  getAuthenticatedUser(@Req() req: Request) {
+    return req.user;
   }
 }

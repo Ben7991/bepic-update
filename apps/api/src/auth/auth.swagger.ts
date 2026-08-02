@@ -42,3 +42,40 @@ export const swaggerLoginResponse = {
     ...swaggerServerErrorResponse,
   },
 };
+
+export const swaggerGetAuthenticatedUserResponse = {
+  responses: {
+    200: {
+      description: 'OK',
+      content: {
+        'application/json': {
+          schema: {
+            example: {
+              data: {
+                user: {
+                  id: '12345',
+                  name: 'user',
+                  role: '****',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    400: {
+      description: 'Error',
+      content: {
+        'application/json': {
+          schema: {
+            example: {
+              message: 'Access denied',
+              error: 'UnauthorizedException',
+              statusCode: 400,
+            },
+          },
+        },
+      },
+    },
+  },
+};
