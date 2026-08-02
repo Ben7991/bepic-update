@@ -8,6 +8,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
   UseInterceptors,
   ValidationPipe,
@@ -144,5 +145,35 @@ export class AuthController {
   @Get('user')
   getAuthenticatedUser(@Req() req: Request) {
     return req.user;
+  }
+
+  /**
+   * Handles incoming request to generate a new access token for authenticated users
+   * @param {Request} req - The incoming request object
+   * @param {Response} res - The outgoing response for the request
+   * @returns a message for a successfully refreshed access token
+   */
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'OK',
+    example: {
+      message: 'Token refreshed successfully',
+    },
+  })
+  @Get('refresh-token')
+  async refreshToken(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    if (!req.cookies) {
+      throw new UnauthorizedException('Access denied');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const token = req.cookies[TokenType.REFRESH_TOKEN] as string | undefined;
+    const accessToken = await this._authService.refreshToken(token);
+    this._setAccessTokenInCookie(res, accessToken, this._accessTokenDuration);
+
+    return { message: 'Token refreshed successfully' };
   }
 }

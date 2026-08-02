@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   BadRequestException,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { describe, beforeEach, it, expect, jest } from '@jest/globals';
@@ -12,7 +13,7 @@ import { AuthService } from './auth.service';
 import { UserRepository } from './repositories/user.repository';
 import { EncryptionService } from './encryption.service';
 import { LoginDto } from './dto/login.dto';
-import { Status } from './auth.types';
+import { Status, TokenType } from './auth.types';
 import { User } from './entities/user.entity';
 
 describe('AuthService', () => {
@@ -35,6 +36,7 @@ describe('AuthService', () => {
           provide: EncryptionService,
           useValue: {
             encrypt: () => jest.fn(),
+            decrypt: () => jest.fn(),
           },
         },
         {
@@ -159,6 +161,156 @@ describe('AuthService', () => {
       expect(signSpy).toHaveBeenCalled();
       expect(compareSpy).toHaveBeenCalled();
       expect(encryptSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('refreshToken', () => {
+    const mockedToken = 'abcd';
+    const mockedDecryptedToken = 'abcd-12345';
+    const mockedSecretKey = 'secret-key';
+
+    it('should throw if the token is undefined', async () => {
+      const decryptSpy = jest.spyOn(encryptionService, 'decrypt');
+      await expect(authService.refreshToken()).rejects.toThrow(
+        UnauthorizedException,
+      );
+      expect(decryptSpy).not.toHaveBeenCalled();
+    });
+
+    it('should throw if the token type is not a refresh token', async () => {
+      const decryptSpy = jest
+        .spyOn(encryptionService, 'decrypt')
+        .mockReturnValue(mockedDecryptedToken);
+      const verifySpy = jest
+        .spyOn(jsonwebtoken, 'verify')
+        .mockReturnValue({ sub: '1234', type: 'tk' } as unknown as never);
+      const findSpy = jest.spyOn(userRepository, 'find');
+      const configSpy = jest
+        .spyOn(configService, 'get')
+        .mockImplementation((token) => {
+          switch (token) {
+            case 'SECRET_KEY':
+              return mockedSecretKey;
+            default:
+              return '';
+          }
+        });
+
+      await expect(authService.refreshToken(mockedToken)).rejects.toThrow(
+        UnauthorizedException,
+      );
+      expect(decryptSpy).toHaveBeenCalled();
+      expect(configSpy).toHaveBeenCalled();
+      expect(verifySpy).toHaveBeenCalled();
+      expect(verifySpy).toHaveBeenCalledWith(
+        mockedDecryptedToken,
+        mockedSecretKey,
+        {
+          algorithms: ['HS256'],
+        },
+      );
+      expect(findSpy).not.toHaveBeenCalled();
+    });
+
+    it('should throw if user does not exist', async () => {
+      const decryptSpy = jest
+        .spyOn(encryptionService, 'decrypt')
+        .mockReturnValue(mockedDecryptedToken);
+      const verifySpy = jest.spyOn(jsonwebtoken, 'verify').mockReturnValue({
+        sub: '1234',
+        type: String(TokenType.REFRESH_TOKEN),
+      } as unknown as never);
+      const findSpy = jest
+        .spyOn(userRepository, 'find')
+        .mockResolvedValue(null);
+      const configSpy = jest
+        .spyOn(configService, 'get')
+        .mockImplementation((token) => {
+          switch (token) {
+            case 'SECRET_KEY':
+              return mockedSecretKey;
+            default:
+              return '';
+          }
+        });
+
+      await expect(authService.refreshToken(mockedToken)).rejects.toThrow(
+        UnauthorizedException,
+      );
+      expect(decryptSpy).toHaveBeenCalled();
+      expect(configSpy).toHaveBeenCalled();
+      expect(verifySpy).toHaveBeenCalled();
+      expect(findSpy).toHaveBeenCalled();
+    });
+
+    it('should throw if there an uncontrolled unexpected failure', async () => {
+      const decryptSpy = jest
+        .spyOn(encryptionService, 'decrypt')
+        .mockReturnValue(mockedDecryptedToken);
+      const verifySpy = jest
+        .spyOn(jsonwebtoken, 'verify')
+        .mockImplementation(() => {
+          throw new Error('can not verify');
+        });
+      const findSpy = jest
+        .spyOn(userRepository, 'find')
+        .mockResolvedValue(null);
+      const configSpy = jest
+        .spyOn(configService, 'get')
+        .mockImplementation((token) => {
+          switch (token) {
+            case 'SECRET_KEY':
+              return mockedSecretKey;
+            default:
+              return '';
+          }
+        });
+
+      await expect(authService.refreshToken(mockedToken)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+      expect(decryptSpy).toHaveBeenCalled();
+      expect(configSpy).toHaveBeenCalled();
+      expect(verifySpy).toHaveBeenCalled();
+      expect(findSpy).not.toHaveBeenCalled();
+    });
+
+    it('should return a new access token', async () => {
+      const mockedUser = {
+        id: '1234',
+        name: 'user',
+      } as unknown as User;
+
+      const decryptSpy = jest
+        .spyOn(encryptionService, 'decrypt')
+        .mockReturnValue(mockedDecryptedToken);
+      const verifySpy = jest.spyOn(jsonwebtoken, 'verify').mockReturnValue({
+        sub: '1234',
+        type: String(TokenType.REFRESH_TOKEN),
+      } as unknown as never);
+      const signSpy = jest.spyOn(jsonwebtoken, 'sign');
+      const findSpy = jest
+        .spyOn(userRepository, 'find')
+        .mockResolvedValue(mockedUser);
+      const configSpy = jest
+        .spyOn(configService, 'get')
+        .mockImplementation((token) => {
+          switch (token) {
+            case 'SECRET_KEY':
+              return mockedSecretKey;
+            default:
+              return '';
+          }
+        });
+
+      await expect(
+        authService.refreshToken(mockedToken),
+      ).resolves.toBeDefined();
+      expect(decryptSpy).toHaveBeenCalled();
+      expect(configSpy).toHaveBeenCalled();
+      expect(verifySpy).toHaveBeenCalled();
+      expect(findSpy).toHaveBeenCalled();
+      expect(signSpy).toHaveBeenCalled();
     });
   });
 });

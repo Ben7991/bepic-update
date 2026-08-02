@@ -2,9 +2,10 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { sign } from 'jsonwebtoken';
+import { sign, verify } from 'jsonwebtoken';
 import { compare } from 'bcryptjs';
 
 import { UserRepository } from './repositories/user.repository';
@@ -116,5 +117,42 @@ export class AuthService {
         expiresIn: '12h',
       },
     );
+  }
+
+  /**
+   * Generate a new access token for the user
+   * @param {string} token - The refresh token provided during the request
+   * @returns a new generated access token
+   */
+  async refreshToken(token?: string): Promise<string> {
+    try {
+      if (!token) {
+        throw new ApplicationException('Access denied');
+      }
+
+      const decryptedToken = this._encryptionService.decrypt(token);
+      const result = verify(decryptedToken, this._getSecretKey(), {
+        algorithms: ['HS256'],
+      }) as unknown as { sub: string; type: string };
+
+      if (result.type !== String(TokenType.REFRESH_TOKEN))
+        throw new ApplicationException('Access denied');
+
+      const existingUser = await this._userRepo.find(result.sub);
+
+      if (!existingUser) throw new ApplicationException('Access denied');
+
+      return this._encryptionService.encrypt(
+        this._generateAccessToken(existingUser.id),
+      );
+    } catch (error) {
+      if (error instanceof ApplicationException)
+        throw new UnauthorizedException(error.message);
+
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+      throw new InternalServerErrorException('Something went wrong');
+    }
   }
 }
