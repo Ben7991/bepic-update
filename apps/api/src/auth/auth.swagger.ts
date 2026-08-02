@@ -79,3 +79,35 @@ export const swaggerGetAuthenticatedUserResponse = {
     },
   },
 };
+
+export const swaggerChangePersonalInfoResponse = {
+  responses: {
+    200: {
+      description: 'OK',
+      content: {
+        'application/json': {
+          schema: {
+            example: {
+              message: 'Personal information changed successfully',
+            },
+          },
+        },
+      },
+    },
+    400: {
+      description: 'Error',
+      content: {
+        'application/json': {
+          schema: {
+            example: {
+              message: 'Validation failed',
+              error: 'BadRequest',
+              statusCode: 400,
+            },
+          },
+        },
+      },
+    },
+    ...swaggerServerErrorResponse,
+  },
+};

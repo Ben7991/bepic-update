@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { describe, beforeEach, it, expect, jest } from '@jest/globals';
+import { DataSource, QueryRunner } from 'typeorm';
 import bcryptjs from 'bcryptjs';
 import jsonwebtoken from 'jsonwebtoken';
 
@@ -21,6 +22,15 @@ describe('AuthService', () => {
   let userRepository: UserRepository;
   let encryptionService: EncryptionService;
   let configService: ConfigService;
+  let dataSource: DataSource;
+
+  const mockedQueryRunner = {
+    connect: jest.fn(),
+    startTransaction: jest.fn(),
+    commitTransaction: jest.fn(),
+    rollbackTransaction: jest.fn(),
+    release: jest.fn(),
+  } as unknown as QueryRunner;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -30,6 +40,7 @@ describe('AuthService', () => {
           provide: UserRepository,
           useValue: {
             find: () => jest.fn(),
+            update: () => jest.fn(),
           },
         },
         {
@@ -42,7 +53,13 @@ describe('AuthService', () => {
         {
           provide: ConfigService,
           useValue: {
-            get: () => jest.fn(),
+            get: () => mockedQueryRunner,
+          },
+        },
+        {
+          provide: DataSource,
+          useValue: {
+            createQueryRunner: jest.fn(() => mockedQueryRunner),
           },
         },
       ],
@@ -52,6 +69,7 @@ describe('AuthService', () => {
     userRepository = module.get<UserRepository>(UserRepository);
     encryptionService = module.get<EncryptionService>(EncryptionService);
     configService = module.get<ConfigService>(ConfigService);
+    dataSource = module.get<DataSource>(DataSource);
 
     jest.restoreAllMocks();
   });
@@ -61,6 +79,7 @@ describe('AuthService', () => {
     expect(userRepository).toBeDefined();
     expect(encryptionService).toBeDefined();
     expect(configService).toBeDefined();
+    expect(dataSource).toBeDefined();
   });
 
   describe('login', () => {
@@ -311,6 +330,34 @@ describe('AuthService', () => {
       expect(verifySpy).toHaveBeenCalled();
       expect(findSpy).toHaveBeenCalled();
       expect(signSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('changePersonalInfo', () => {
+    const mockedUser = {
+      id: '12345',
+      name: 'user',
+    } as unknown as User;
+    const mockedPersonalInfo = {
+      name: mockedUser.name,
+    };
+
+    it('should return a message after successful update', async () => {
+      jest.spyOn(userRepository, 'update').mockResolvedValue(mockedUser);
+      await expect(
+        authService.changePersonalInfo(mockedPersonalInfo, mockedUser),
+      ).resolves.toEqual({
+        message: 'Personal information changed successfully',
+      });
+    });
+
+    it('should throw if there is a failure with the update function', async () => {
+      jest.spyOn(userRepository, 'update').mockImplementation(() => {
+        throw new Error('Cannot update user details');
+      });
+      await expect(
+        authService.changePersonalInfo(mockedPersonalInfo, mockedUser),
+      ).rejects.toThrow();
     });
   });
 });

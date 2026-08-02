@@ -21,12 +21,14 @@ import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
 import { DataMessageInterceptor } from '../utils/interceptors/data-message.interceptor';
 import {
+  swaggerChangePersonalInfoResponse,
   swaggerGetAuthenticatedUserResponse,
   swaggerLoginResponse,
 } from './auth.swagger';
 import { TokenType } from './auth.types';
 import { AuthGuard } from './guards/auth.guard';
 import { DataOnlyInterceptor } from '../utils/interceptors/data-only.interceptor';
+import { ChangePersonalDto } from './dto/change-personal.dto';
 
 /**
  * Handles all user authentication request
@@ -175,5 +177,22 @@ export class AuthController {
     this._setAccessTokenInCookie(res, accessToken, this._accessTokenDuration);
 
     return { message: 'Token refreshed successfully' };
+  }
+
+  /**
+   * Handles incoming request to user change personal information
+   * @param {ChangePersonalDto} body
+   * @returns
+   */
+  @ApiOperation(swaggerChangePersonalInfoResponse)
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('personal-info')
+  changePersonalInfo(
+    @Body(ValidationPipe) body: ChangePersonalDto,
+    @Req() req: Request,
+  ) {
+    return this._authService.changePersonalInfo(body, req.user);
   }
 }

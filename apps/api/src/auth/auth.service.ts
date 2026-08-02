@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { DataSource } from 'typeorm';
 import { sign, verify } from 'jsonwebtoken';
 import { compare } from 'bcryptjs';
 
@@ -14,15 +15,18 @@ import { EncryptionService } from './encryption.service';
 import { ApplicationException } from '../utils/exception/application.exception';
 import { LoginType, Status, TokenType } from './auth.types';
 import { AppLogger } from '../utils/logger/app.logger';
+import { ChangePersonalDto } from './dto/change-personal.dto';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class AuthService {
   private readonly _logger = new AppLogger(AuthService.name);
 
   constructor(
+    private readonly _dataSource: DataSource,
     private readonly _userRepo: UserRepository,
-    private readonly _encryptionService: EncryptionService,
     private readonly _configService: ConfigService,
+    private readonly _encryptionService: EncryptionService,
   ) {}
 
   /**
@@ -148,6 +152,42 @@ export class AuthService {
     } catch (error) {
       if (error instanceof ApplicationException)
         throw new UnauthorizedException(error.message);
+
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+      throw new InternalServerErrorException('Something went wrong');
+    }
+  }
+
+  /**
+   * Change name of a user
+   * @param {ChangePersonalDto} body
+   * @param {User} user
+   * @returns
+   */
+  async changePersonalInfo(
+    body: ChangePersonalDto,
+    user: User,
+  ): Promise<{ message: string }> {
+    const queryRunner = this._dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await this._userRepo.update(queryRunner, user, {
+        name: body.name,
+        password: user.password,
+        status: user.status,
+      });
+
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return { message: 'Personal information changed successfully' };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
 
       this._logger.error(
         error instanceof Error ? error.message : JSON.stringify(error),
