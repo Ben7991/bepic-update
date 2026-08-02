@@ -19,6 +19,6 @@ export type LoginType = {
 };
 
 export enum TokenType {
-  ACCESS_TOKEN = 'acc-tk',
-  REFRESH_TOKEN = 'ref-tk',
+  ACCESS_TOKEN = '_acc-tk',
+  REFRESH_TOKEN = '_ref-tk',
 }
