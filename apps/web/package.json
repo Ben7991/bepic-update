@@ -14,6 +14,7 @@
     "@hookform/resolvers": "5.4.0",
     "@tailwindcss/postcss": "4.3.2",
     "lucide-react": "1.24.0",
+    "motion": "13.1.0",
     "next": "16.2.0",
     "postcss": "8.4.31",
     "react": "^19.2.0",
