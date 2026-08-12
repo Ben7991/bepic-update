@@ -28,7 +28,7 @@ export function SideDrawer({
       {state && isMobileView(1023) && <Backdrop onClick={toggleDrawer} />}
       <motion.aside
         animate={{ width: state ? '318.75px' : '0' }}
-        className={`fixed top-0 left-0 h-screen z-10 w-0 py-8 lg:py-10 overflow-hidden lg:static lg:h-auto lg:basis-67.5 xl:basis-75 bg-gray-200 overflow-y-auto`}
+        className={`fixed top-0 left-0 h-screen ${state ? 'z-10' : ''} w-0 py-8 lg:py-10 overflow-hidden lg:static lg:h-auto lg:basis-67.5 xl:basis-75 bg-gray-200 overflow-y-auto`}
       >
         <div className="w-4/5 mx-auto">
           <UserProfile />
