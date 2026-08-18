@@ -32,45 +32,65 @@ export const DASHBOARD_PATHS: Array<{
   name: string;
   icon: React.JSX.Element;
 }> = [
-  { path: '/dashboard', name: 'Dashboard', icon: <ChartColumnIncreasing /> },
-  { path: '/dashboard/incentives', name: 'Incentives', icon: <Gift /> },
-  { path: '/dashboard/products', name: 'Products', icon: <Pill /> },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    icon: <ChartColumnIncreasing className="w-5" />,
+  },
+  {
+    path: '/dashboard/incentives',
+    name: 'Incentives',
+    icon: <Gift className="w-5" />,
+  },
+  {
+    path: '/dashboard/products',
+    name: 'Products',
+    icon: <Pill className="w-5" />,
+  },
   {
     path: '/dashboard/order-history',
     name: 'Order History',
-    icon: <ClockFading />,
+    icon: <ClockFading className="w-5" />,
   },
   {
     path: '/dashboard/purchase-history',
     name: 'Purchase History',
-    icon: <ClockFading />,
+    icon: <ClockFading className="w-5" />,
   },
-  { path: '/dashboard/my-tree', name: 'My Tree', icon: <Network /> },
-  { path: '/dashboard/awards', name: 'Awards', icon: <Trophy /> },
+  {
+    path: '/dashboard/my-tree',
+    name: 'My Tree',
+    icon: <Network className="w-5" />,
+  },
+  {
+    path: '/dashboard/awards',
+    name: 'Awards',
+    icon: <Trophy className="w-5" />,
+  },
   {
     path: '/dashboard/incentives-won',
     name: 'Incentives Won',
-    icon: <Trophy />,
+    icon: <Trophy className="w-5" />,
   },
   {
     path: '/dashboard/request-withdrawal',
     name: 'Request Withdrawal',
-    icon: <CircleQuestionMark />,
+    icon: <CircleQuestionMark className="w-5" />,
   },
   {
     path: '/dashboard/bonus-withdrawal',
     name: 'Bonus Withdrawal',
-    icon: <BanknoteArrowDown />,
+    icon: <BanknoteArrowDown className="w-5" />,
   },
   {
     path: '/dashboard/transactions',
     name: 'Transactions',
-    icon: <BanknoteCheck />,
+    icon: <BanknoteCheck className="w-5" />,
   },
   {
     path: '/dashboard/distributors',
     name: 'Distributors',
-    icon: <UsersRound />,
+    icon: <UsersRound className="w-5" />,
   },
 ] as const;
 
