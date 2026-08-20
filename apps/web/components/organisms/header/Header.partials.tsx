@@ -1,38 +1,65 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Lock, UserRoundPen } from "lucide-react";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { InferType } from "yup";
+import { type Dispatch, type SetStateAction, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Lock, UserRoundPen } from 'lucide-react';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { InferType } from 'yup';
 
-import { Button } from "@/components/atoms/button/Button";
-import { Modal } from "../modal/Modal";
-import { Form } from "@/components/atoms/form/Form";
-import { loginSchema } from "./Header.utils";
+import { login, loginSchema } from './Header.utils';
+import { Button } from '@/components/atoms/button/Button';
+import { Modal } from '../modal/Modal';
+import { Form } from '@/components/atoms/form/Form';
+import { Alert } from '@/components/molecules/alert/Alert';
+import { type AlertInfoType, useAlert } from '@/lib/hooks/use-alert/useAlert';
+import { useToggle } from '@/lib/hooks/use-toggle/useToggle';
 
 export function DisplayLoginForm(): React.JSX.Element {
-  const [showForm, setShowForm] = useState(false);
-
-  const toggle = (): void => {
-    setShowForm(!showForm);
-  };
+  const { show: showForm, toggle: toggleForm } = useToggle();
+  const {
+    alertInfo,
+    setAlertInfo,
+    state: alertState,
+    hideAlert,
+    showAlert,
+  } = useAlert();
 
   return (
     <>
-      <Button el="button" variant="primary" onClick={toggle}>
+      <Alert
+        show={alertState}
+        variant={alertInfo?.variant}
+        headline="Login"
+        message={alertInfo?.message}
+        onToggle={hideAlert}
+      />
+      <Button el="button" variant="primary" onClick={toggleForm}>
         Login
       </Button>
       {showForm && (
-        <Modal state={showForm} title="Sign-in your account" onToggle={toggle}>
-          <LoginForm />
+        <Modal
+          state={showForm}
+          title="Sign-in your account"
+          onToggle={toggleForm}
+        >
+          <LoginForm onToggleAlert={showAlert} onSetAlertInfo={setAlertInfo} />
         </Modal>
       )}
     </>
   );
 }
 
-function LoginForm(): React.JSX.Element {
+type LoginFormProps = {
+  onToggleAlert: VoidFunction;
+  onSetAlertInfo: Dispatch<SetStateAction<AlertInfoType | undefined>>;
+};
+
+function LoginForm({
+  onToggleAlert,
+  onSetAlertInfo,
+}: LoginFormProps): React.JSX.Element {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const {
     register,
@@ -40,7 +67,7 @@ function LoginForm(): React.JSX.Element {
     formState: { errors },
   } = useForm({
     resolver: yupResolver(loginSchema),
-    mode: "onBlur",
+    mode: 'onBlur',
   });
 
   const onSubmit: SubmitHandler<InferType<typeof loginSchema>> = async (
@@ -49,9 +76,19 @@ function LoginForm(): React.JSX.Element {
     setIsLoading(true);
 
     try {
-      console.log(data);
+      await login(data);
+      router.push('/dashboard');
     } catch (error) {
       console.log(error);
+      onSetAlertInfo({
+        message:
+          error instanceof Error
+            ? (error as Error).message
+            : 'Something went wrong',
+        variant: 'danger',
+      });
+    } finally {
+      onToggleAlert();
     }
 
     setIsLoading(false);
@@ -64,7 +101,7 @@ function LoginForm(): React.JSX.Element {
         <Form.Control
           type="text"
           id="username"
-          {...register("username")}
+          {...register('username')}
           placeholder=""
           hasError={Boolean(errors.username)}
           leftIcon={<UserRoundPen width={20} height={20} />}
@@ -78,7 +115,7 @@ function LoginForm(): React.JSX.Element {
         <Form.Control
           type="password"
           id="password"
-          {...register("password")}
+          {...register('password')}
           hasError={Boolean(errors.password)}
           leftIcon={<Lock width={20} height={20} />}
         />
