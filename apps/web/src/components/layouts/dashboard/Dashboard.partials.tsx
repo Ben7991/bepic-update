@@ -11,6 +11,8 @@ import { Button } from '../../atoms/button/Button';
 import { Headline } from '../../atoms/headline/Headline';
 import { useOutsideClick } from '../../../lib/hooks/use-outside-click/useOutsideClick';
 import { signOut } from './Dashboard.utils';
+import { useAppDispatch } from '../../../store/index.util';
+import { removeAuthUser } from '../../../store/slice/auth/auth.slice';
 
 type DashboardHeaderProps = {
   toggleDrawer: VoidFunction;
@@ -33,7 +35,7 @@ export function DashboardHeader({
   };
 
   return (
-    <header className="p-4 border-b border-b-gray-400 md:border-b-0">
+    <header className="p-4 border-b border-b-gray-400 md:border-b-0 xl:px-6">
       <Row className="items-center justify-between">
         <div className="flex items-center gap-3">
           <button
@@ -47,7 +49,7 @@ export function DashboardHeader({
             <Headline tag="h4">Energy888</Headline>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 lg:gap-0">
           <button onClick={toggleMenu} className="flex items-center">
             <UserRound />
           </button>
@@ -86,12 +88,14 @@ export function DashboardHeader({
 
 export function LogoutModalForm(): React.JSX.Element {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const onSubmit = async (
     event: SubmitEvent<HTMLFormElement>,
   ): Promise<void> => {
     event.preventDefault();
     await signOut();
+    dispatch(removeAuthUser());
     navigate('/');
   };
 

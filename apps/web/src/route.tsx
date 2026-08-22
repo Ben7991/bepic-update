@@ -1,7 +1,10 @@
 /* eslint-disable react-refresh/only-export-components */
 import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router';
+
+import { CanActivate } from './components/guards/can-activate/CanActivate';
 import Dashboard from './components/layouts/dashboard/Dashboard';
+import { CanDeactivate } from './components/guards/can-deactivate/CanDeactivate';
 
 const LandingPage = lazy(() => import('./pages/landing-page/LandingPage'));
 
@@ -39,10 +42,21 @@ const Transactions = lazy(
 );
 
 export const router = createBrowserRouter([
-  { path: '/', element: <LandingPage /> },
+  {
+    path: '/',
+    element: (
+      <CanDeactivate>
+        <LandingPage />
+      </CanDeactivate>
+    ),
+  },
   {
     path: '/dashboard',
-    element: <Dashboard />,
+    element: (
+      <CanActivate>
+        <Dashboard />
+      </CanActivate>
+    ),
     children: [
       { index: true, element: <Overview /> },
       { path: 'account-settings', element: <AccountSettings /> },
