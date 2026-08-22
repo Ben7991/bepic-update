@@ -1,26 +1,26 @@
-import { type ComponentPropsWithoutRef } from "react";
+import { type ComponentPropsWithoutRef } from 'react';
 
-type ButtonVariant = "primary" | "success" | "danger";
+type ButtonVariant = 'primary' | 'success' | 'danger';
 type ButtonProps = {
-  el: "button";
+  el: 'button';
   variant: ButtonVariant;
   loading?: boolean;
-} & ComponentPropsWithoutRef<"button">;
+} & ComponentPropsWithoutRef<'button'>;
 
 export function Button(props: ButtonProps): React.JSX.Element {
   const { className, variant, loading, ...rest } = props;
 
-  let variantClassNames = "";
+  let variantClassNames = '';
 
-  if (variant === "primary") {
+  if (variant === 'primary') {
     variantClassNames =
-      "bg-blue-600 text-white inline-block py-1.5 px-3.5 rounded-md cursor-pointer";
-  } else if (variant === "success") {
+      'bg-blue-600 text-white inline-block py-1 px-3.5 rounded-md cursor-pointer';
+  } else if (variant === 'success') {
     variantClassNames =
-      "bg-green-500 text-white inline-block py-1.5 px-3.5 rounded-md";
-  } else if (variant === "danger") {
+      'bg-green-500 text-white inline-block py-1 px-3.5 rounded-md';
+  } else if (variant === 'danger') {
     variantClassNames =
-      "bg-red-500 text-white inline-block py-1.5 px-3.5 rounded-md";
+      'bg-red-500 text-white inline-block py-1 px-3.5 rounded-md';
   }
 
   return (

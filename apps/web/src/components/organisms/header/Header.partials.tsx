@@ -1,20 +1,22 @@
-import { useState, type Dispatch, type SetStateAction } from "react";
-import { useNavigate } from "react-router";
-import { useForm, type SubmitHandler } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import type { InferType } from "yup";
-import { Lock, UserRoundPen } from "lucide-react";
+import { useState, type Dispatch, type SetStateAction } from 'react';
+import { useNavigate } from 'react-router';
+import { useForm, type SubmitHandler } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import type { InferType } from 'yup';
+import { Lock, UserRoundPen } from 'lucide-react';
 
-import { Button } from "../../atoms/button/Button";
-import { login, loginSchema } from "./Header.utils";
+import { Button } from '../../atoms/button/Button';
+import { login, loginSchema } from './Header.utils';
 import {
   useAlert,
   type AlertInfoType,
-} from "../../../lib/hooks/use-alert/useAlert";
-import { useToggle } from "../../../lib/hooks/use-toggle/useToggle";
-import { Form } from "../../atoms/form/Form";
-import { Alert } from "../../molecules/alert/Alert";
-import { Modal } from "../modal/Modal";
+} from '../../../lib/hooks/use-alert/useAlert';
+import { useToggle } from '../../../lib/hooks/use-toggle/useToggle';
+import { Form } from '../../atoms/form/Form';
+import { Alert } from '../../molecules/alert/Alert';
+import { Modal } from '../modal/Modal';
+import { useAppDispatch } from '../../../store/index.util';
+import { setAuthUser } from '../../../store/slice/auth/auth.slice';
 
 export function DisplayLoginForm(): React.JSX.Element {
   const { show: showForm, toggle: toggleForm } = useToggle();
@@ -60,6 +62,7 @@ function LoginForm({
   onToggleAlert,
   onSetAlertInfo,
 }: LoginFormProps): React.JSX.Element {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const {
@@ -68,7 +71,7 @@ function LoginForm({
     formState: { errors },
   } = useForm({
     resolver: yupResolver(loginSchema),
-    mode: "onBlur",
+    mode: 'onBlur',
   });
 
   const onSubmit: SubmitHandler<InferType<typeof loginSchema>> = async (
@@ -77,16 +80,21 @@ function LoginForm({
     setIsLoading(true);
 
     try {
-      await login(data);
-      navigate("/dashboard");
+      const result = await login(data);
+      dispatch(
+        setAuthUser({
+          user: result.data,
+        }),
+      );
+      navigate('/dashboard');
     } catch (error) {
       console.log(error);
       onSetAlertInfo({
         message:
           error instanceof Error
             ? (error as Error).message
-            : "Something went wrong",
-        variant: "danger",
+            : 'Something went wrong',
+        variant: 'danger',
       });
     } finally {
       onToggleAlert();
@@ -102,10 +110,10 @@ function LoginForm({
         <Form.Control
           type="text"
           id="username"
-          {...register("username")}
+          {...register('username')}
           placeholder=""
           hasError={Boolean(errors.username)}
-          leftIcon={<UserRoundPen width={20} height={20} />}
+          leftIcon={<UserRoundPen className="w-4" />}
         />
         {Boolean(errors.username) && (
           <Form.Error>{errors.username?.message}</Form.Error>
@@ -116,9 +124,9 @@ function LoginForm({
         <Form.Control
           type="password"
           id="password"
-          {...register("password")}
+          {...register('password')}
           hasError={Boolean(errors.password)}
-          leftIcon={<Lock width={20} height={20} />}
+          leftIcon={<Lock className="w-4" />}
         />
         {Boolean(errors.password) && (
           <Form.Error>{errors.password?.message}</Form.Error>

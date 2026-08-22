@@ -1,7 +1,10 @@
-import { ComponentPropsWithoutRef, ComponentPropsWithRef } from "react";
+import {
+  type ComponentPropsWithoutRef,
+  type ComponentPropsWithRef,
+} from 'react';
 
 export function Form(
-  props: ComponentPropsWithoutRef<"form">,
+  props: ComponentPropsWithoutRef<'form'>,
 ): React.JSX.Element {
   return <form {...props}>{props.children}</form>;
 }
@@ -9,7 +12,7 @@ export function Form(
 function Group({
   className,
   ...props
-}: ComponentPropsWithoutRef<"div">): React.JSX.Element {
+}: ComponentPropsWithoutRef<'div'>): React.JSX.Element {
   return (
     <div className={`${className}`} {...props}>
       {props.children}
@@ -20,7 +23,7 @@ function Group({
 function Label({
   className,
   ...props
-}: ComponentPropsWithoutRef<"label">): React.JSX.Element {
+}: ComponentPropsWithoutRef<'label'>): React.JSX.Element {
   return (
     <label className={`inline-block ${className}`} {...props}>
       {props.children}
@@ -31,7 +34,7 @@ function Label({
 type ControlProps = {
   hasError?: boolean;
   leftIcon?: React.ReactNode;
-} & ComponentPropsWithRef<"input">;
+} & ComponentPropsWithRef<'input'>;
 
 function Control({
   hasError,
@@ -40,11 +43,11 @@ function Control({
 }: ControlProps): React.JSX.Element {
   return (
     <div
-      className={`form-control border rounded-md flex items-center gap-2 ${hasError ? "border-red-600!" : "border-gray-300"} ${leftIcon ? "px-3" : ""}`}
+      className={`form-control border rounded-md flex items-center gap-2 ${hasError ? 'border-red-600!' : 'border-gray-300'} ${leftIcon ? 'px-3' : ''}`}
     >
       {leftIcon}
       <input
-        className={`${!leftIcon ? "px-3" : ""} py-1.5 inline-block grow outline-none border-none`}
+        className={`${!leftIcon ? 'px-3' : ''} py-1 inline-block grow outline-none border-none`}
         {...props}
       />
     </div>

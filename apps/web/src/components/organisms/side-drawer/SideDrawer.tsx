@@ -35,7 +35,7 @@ export function SideDrawer({
                 <Link
                   to={item.path}
                   onClick={toggleDrawer}
-                  className={`flex items-center gap-2 py-1.5 px-2.5 rounded-md ${getActiveLinkClassnames(pathname, item.path)}`}
+                  className={`flex items-center gap-2 py-1 px-2.5 rounded-md ${getActiveLinkClassnames(pathname, item.path)}`}
                 >
                   {item.icon}
                   <span>{item.name}</span>
