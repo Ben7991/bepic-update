@@ -35,62 +35,62 @@ export const DASHBOARD_PATHS: Array<{
   {
     path: '/dashboard',
     name: 'Dashboard',
-    icon: <ChartColumnIncreasing className="w-5" />,
+    icon: <ChartColumnIncreasing className="w-4" />,
   },
   {
     path: '/dashboard/incentives',
     name: 'Incentives',
-    icon: <Gift className="w-5" />,
+    icon: <Gift className="w-4" />,
   },
   {
     path: '/dashboard/products',
     name: 'Products',
-    icon: <Pill className="w-5" />,
+    icon: <Pill className="w-4" />,
   },
   {
     path: '/dashboard/order-history',
     name: 'Order History',
-    icon: <ClockFading className="w-5" />,
+    icon: <ClockFading className="w-4" />,
   },
   {
     path: '/dashboard/purchase-history',
     name: 'Purchase History',
-    icon: <ClockFading className="w-5" />,
+    icon: <ClockFading className="w-4" />,
   },
   {
     path: '/dashboard/my-tree',
     name: 'My Tree',
-    icon: <Network className="w-5" />,
+    icon: <Network className="w-4" />,
   },
   {
     path: '/dashboard/awards',
     name: 'Awards',
-    icon: <Trophy className="w-5" />,
+    icon: <Trophy className="w-4" />,
   },
   {
     path: '/dashboard/incentives-won',
     name: 'Incentives Won',
-    icon: <Trophy className="w-5" />,
+    icon: <Trophy className="w-4" />,
   },
   {
     path: '/dashboard/request-withdrawal',
     name: 'Request Withdrawal',
-    icon: <CircleQuestionMark className="w-5" />,
+    icon: <CircleQuestionMark className="w-4" />,
   },
   {
     path: '/dashboard/bonus-withdrawal',
     name: 'Bonus Withdrawal',
-    icon: <BanknoteArrowDown className="w-5" />,
+    icon: <BanknoteArrowDown className="w-4" />,
   },
   {
     path: '/dashboard/transactions',
     name: 'Transactions',
-    icon: <BanknoteCheck className="w-5" />,
+    icon: <BanknoteCheck className="w-4" />,
   },
   {
     path: '/dashboard/distributors',
     name: 'Distributors',
-    icon: <UsersRound className="w-5" />,
+    icon: <UsersRound className="w-4" />,
   },
 ] as const;
 
