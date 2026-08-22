@@ -22,6 +22,8 @@ export type ServerErrorResponse = {
   statusCode: number;
 };
 
+export type AuthState = 'loading' | 'authenticated' | 'not-authenticated';
+
 export type Role = 'ADMIN' | 'DISTRIBUTOR';
 
 export type User = {
