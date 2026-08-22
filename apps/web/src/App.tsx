@@ -1,7 +1,13 @@
-import { RouterProvider } from "react-router";
+import { Provider } from 'react-redux';
+import { RouterProvider } from 'react-router';
 
-import { router } from "./route";
+import { store } from './store';
+import { router } from './route';
 
 export default function App(): React.JSX.Element {
-  return <RouterProvider router={router} />;
+  return (
+    <Provider store={store}>
+      <RouterProvider router={router} />
+    </Provider>
+  );
 }
