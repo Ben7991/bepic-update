@@ -60,7 +60,7 @@ export function DashboardHeader({
                   initial={{ scale: 0.7, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.7, opacity: 0 }}
-                  className="absolute bg-white shadow-md top-10 right-0 w-55 border border-gray-100 rounded-sm flex flex-col"
+                  className="absolute bg-white shadow-md top-6 right-0 w-55 border border-gray-100 rounded-sm flex flex-col"
                 >
                   <Link
                     to="/dashboard/account-settings"
