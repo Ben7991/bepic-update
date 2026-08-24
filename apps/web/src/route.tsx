@@ -5,6 +5,7 @@ import { createBrowserRouter } from 'react-router';
 import { CanActivate } from './components/guards/can-activate/CanActivate';
 import Dashboard from './components/layouts/dashboard/Dashboard';
 import { CanDeactivate } from './components/guards/can-deactivate/CanDeactivate';
+import { NotFound } from './pages/errors/not-found/NotFound';
 
 const LandingPage = lazy(() => import('./pages/landing-page/LandingPage'));
 
@@ -49,6 +50,7 @@ export const router = createBrowserRouter([
         <LandingPage />
       </CanDeactivate>
     ),
+    errorElement: <NotFound />,
   },
   {
     path: '/dashboard',
@@ -57,6 +59,7 @@ export const router = createBrowserRouter([
         <Dashboard />
       </CanActivate>
     ),
+    errorElement: <NotFound />,
     children: [
       { index: true, element: <Overview /> },
       { path: 'account-settings', element: <AccountSettings /> },
