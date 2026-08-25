@@ -47,7 +47,7 @@ function Control({
     >
       {leftIcon}
       <input
-        className={`${!leftIcon ? 'px-3' : ''} py-1 inline-block grow outline-none border-none`}
+        className={`${!leftIcon ? 'px-3' : ''} py-1.5 inline-block grow outline-none border-none`}
         {...props}
       />
     </div>
