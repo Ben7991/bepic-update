@@ -35,17 +35,17 @@ export function DashboardHeader({
   };
 
   return (
-    <header className="p-4 border-b border-b-gray-400 md:border-b-0 xl:px-6">
+    <header className="p-4 border-b border-b-gray-400 lg:border-b-0 xl:px-6">
       <Row className="items-center justify-between">
         <div className="flex items-center gap-3">
           <button
-            className="hover:cursor-pointer border border-gray-400 rounded-sm py-1.5 px-2 lg:hidden"
+            className="hover:cursor-pointer border border-gray-400 rounded-sm py-1 px-1.5 lg:hidden"
             onClick={toggleDrawer}
           >
             <Menu className="w-5" />
           </button>
-          <div className="flex items-center gap-2">
-            <img src={logo} alt="Energy888 logo" width={35} height={35} />
+          <div className="flex items-center gap-1">
+            <img src={logo} alt="Energy888 logo" className="w-8.75 h-8.75" />
             <Headline tag="h4">Energy888</Headline>
           </div>
         </div>
@@ -63,15 +63,15 @@ export function DashboardHeader({
                   className="absolute bg-white shadow-md top-6 right-0 w-55 border border-gray-100 rounded-sm flex flex-col"
                 >
                   <Link
-                    to="/dashboard/account-settings"
-                    className="flex items-center gap-2 py-1.5 px-3 hover:bg-gray-100"
+                    to="/dashboard/account-settings?tab=personal"
+                    className="flex items-center gap-2 py-1 px-3 hover:bg-gray-100"
                   >
                     <Settings className="w-4" />
                     <span>Account Settings</span>
                   </Link>
                   <button
                     onClick={toggleLogoutModal}
-                    className="flex items-center gap-2 py-1.5 px-3 hover:bg-gray-100 w-full hover:cursor-pointer"
+                    className="flex items-center gap-2 py-1 px-3 hover:bg-gray-100 w-full hover:cursor-pointer"
                   >
                     <LogOut className="w-4" />
                     <span>Logout</span>
