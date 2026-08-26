@@ -33,4 +33,5 @@ export type User = {
   name: string;
   username: string;
   role: Role;
+  imagePath?: string;
 };
