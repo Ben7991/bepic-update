@@ -65,10 +65,11 @@ export class UserRepository {
   async update(
     queryRunner: QueryRunner,
     user: User,
-    data: Pick<User, 'name' | 'password' | 'status'>,
+    data: Pick<User, 'name' | 'password' | 'status' | 'imagePath'>,
   ): Promise<User> {
     user.name = data.name;
     user.password = data.password;
+    user.imagePath = data.imagePath;
     user.status = data.status;
     return await queryRunner.manager.save(user);
   }

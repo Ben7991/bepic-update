@@ -37,4 +37,10 @@ export class User {
     enum: Role,
   })
   role: Role;
+
+  @Column({
+    type: 'varchar',
+    nullable: true,
+  })
+  imagePath?: string;
 }
