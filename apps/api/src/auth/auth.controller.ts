@@ -1,26 +1,39 @@
 import {
+  BadRequestException,
   Body,
   ClassSerializerInterceptor,
   Controller,
+  FileTypeValidator,
   Get,
   HttpCode,
   HttpStatus,
+  MaxFileSizeValidator,
+  ParseFilePipe,
   Post,
   Req,
   Res,
   UnauthorizedException,
+  UploadedFile,
   UseGuards,
   UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
+import 'multer';
 
 import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
 import { DataMessageInterceptor } from '../utils/interceptors/data-message.interceptor';
 import {
+  swaggerChangeImageResponse,
   swaggerChangePasswordResponse,
   swaggerChangePersonalInfoResponse,
   swaggerGetAuthenticatedUserResponse,
@@ -31,6 +44,7 @@ import { AuthGuard } from './guards/auth.guard';
 import { DataOnlyInterceptor } from '../utils/interceptors/data-only.interceptor';
 import { ChangePersonalDto } from './dto/change-personal.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 /**
  * Handles all user authentication request
@@ -173,7 +187,6 @@ export class AuthController {
       throw new UnauthorizedException('Access denied');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const token = req.cookies[TokenType.REFRESH_TOKEN] as string | undefined;
     const accessToken = await this._authService.refreshToken(token);
     this._setAccessTokenInCookie(res, accessToken, this._accessTokenDuration);
@@ -210,9 +223,64 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('password')
   changePassword(
-    @Body(ValidationPipe) body: ChangePasswordDto,
+    @Body(
+      new ValidationPipe({
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    body: ChangePasswordDto,
     @Req() req: Request,
   ) {
     return this._authService.changePassword(body, req.user);
+  }
+
+  /**
+   * Handles incoming request to change user's profile image
+   * @param {Express.Multer.File} file - The uploaded file
+   * @param {Request} req - The incoming request object
+   * @returns a success message after change
+   */
+  @ApiOperation(swaggerChangeImageResponse)
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(
+    new DataMessageInterceptor('Profile image uploaded successfully'),
+  )
+  @HttpCode(HttpStatus.OK)
+  @Post('change-image')
+  changeImage(
+    @Req() req: Request,
+    @UploadedFile(
+      new ParseFilePipe({
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 2 * 1024 * 1024,
+            message: 'Image size must be less than or equal to 2MB',
+          }),
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg|webp)' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Image is required');
+    }
+
+    return this._authService.changeImage(req.user, file);
   }
 }

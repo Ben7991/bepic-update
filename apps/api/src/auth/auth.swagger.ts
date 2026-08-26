@@ -143,3 +143,38 @@ export const swaggerChangePasswordResponse = {
     ...swaggerServerErrorResponse,
   },
 };
+
+export const swaggerChangeImageResponse = {
+  responses: {
+    200: {
+      description: 'OK',
+      content: {
+        'application/json': {
+          schema: {
+            example: {
+              message: 'Profile image uploaded successfully',
+              data: {
+                imagePath: 'abcd.png',
+              },
+            },
+          },
+        },
+      },
+    },
+    400: {
+      description: 'Error',
+      content: {
+        'application/json': {
+          schema: {
+            example: {
+              message: 'Image size must be less than or equal to 2MB',
+              error: 'BadRequest',
+              statusCode: 422,
+            },
+          },
+        },
+      },
+    },
+    ...swaggerServerErrorResponse,
+  },
+};

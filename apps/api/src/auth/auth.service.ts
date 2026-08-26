@@ -8,6 +8,8 @@ import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { sign, verify } from 'jsonwebtoken';
 import { compare, genSalt, hash } from 'bcryptjs';
+import { extname, join } from 'node:path';
+import { unlink, writeFile } from 'node:fs/promises';
 
 import { UserRepository } from './repositories/user.repository';
 import { LoginDto } from './dto/login.dto';
@@ -18,6 +20,7 @@ import { AppLogger } from '../utils/logger/app.logger';
 import { ChangePersonalDto } from './dto/change-personal.dto';
 import { User } from './entities/user.entity';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { MessageOnlyType } from '../utils/types.utils';
 
 @Injectable()
 export class AuthService {
@@ -170,7 +173,7 @@ export class AuthService {
   async changePersonalInfo(
     body: ChangePersonalDto,
     user: User,
-  ): Promise<{ message: string }> {
+  ): Promise<MessageOnlyType> {
     const queryRunner = this._dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -205,7 +208,7 @@ export class AuthService {
   async changePassword(
     body: ChangePasswordDto,
     user: User,
-  ): Promise<{ message: string }> {
+  ): Promise<MessageOnlyType> {
     if (!(body.newPassword === body.confirmPassword)) {
       throw new BadRequestException('Passwords do not each other');
     }
@@ -241,5 +244,66 @@ export class AuthService {
       );
       throw new InternalServerErrorException('Something went wrong');
     }
+  }
+
+  /**
+   * Change a user's image
+   * @param {User} user - The user initiating the request
+   * @param {Express.Multer.File} file - The uploaded file
+   * @returns the image path
+   */
+  async changeImage(
+    user: User,
+    file: Express.Multer.File,
+  ): Promise<{ imagePath: string }> {
+    const queryRunner = this._dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    let newImagePath: string = '';
+    const oldImagePath = user?.imagePath;
+
+    try {
+      newImagePath = await this._uploadFile(file);
+      await this._userRepo.update(queryRunner, user, {
+        name: user.name,
+        password: user.password,
+        status: user.status,
+        imagePath: newImagePath,
+      });
+
+      if (oldImagePath) await unlink(oldImagePath);
+
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return { imagePath: newImagePath };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+
+      if (newImagePath) await unlink(newImagePath);
+
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+      throw new InternalServerErrorException('Something went wrong');
+    }
+  }
+
+  /**
+   * Stores the uploaded file in the uploads/users directory
+   * @param {Express.Multer.File} file - The uploaded file
+   * @returns the constructed image path
+   */
+  private async _uploadFile(file: Express.Multer.File): Promise<string> {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const ext = extname(file.originalname);
+    const filename = `${uniqueSuffix}${ext}`;
+
+    const uploadPath = join(process.cwd(), 'uploads', 'users', filename);
+    await writeFile(uploadPath, file.buffer);
+
+    return `uploads/users/${filename}`;
   }
 }
