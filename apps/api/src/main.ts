@@ -16,7 +16,6 @@ async function bootstrap() {
   app.setGlobalPrefix('api', {
     exclude: [{ path: '/health', method: RequestMethod.GET }],
   });
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   app.use(cookieParser());
 
   const configService = app.get<ConfigService>(ConfigService);
@@ -25,6 +24,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Bepic')
     .setDescription('A network marketing service')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
