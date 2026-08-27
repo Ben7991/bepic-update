@@ -7,6 +7,10 @@ export type ResponseWithDataAndMessage<T> = {
   data: T;
 };
 
+export type ResponseWithOnlyMessage = {
+  message: string;
+}
+
 export type ResponseWithOnlyData<T> = {
   data: T;
 };
