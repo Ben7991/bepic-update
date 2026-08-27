@@ -50,7 +50,7 @@ function Control({
     >
       {leftIcon}
       <input
-        className={`${!leftIcon || !rightIcon ? 'px-3' : ''} py-1.5 inline-block grow outline-none border-none`}
+        className={`${!(leftIcon || rightIcon) ? 'px-3' : ''} py-1.5 inline-block grow outline-none border-none`}
         {...rest}
       />
       {rightIcon}
