@@ -138,10 +138,10 @@ function TabHeader({
   description,
 }: TabHeaderProps): React.JSX.Element {
   return (
-    <div className="mb-5">
+    <div className="mb-5 flex flex-col items-center">
       <Headline tag="h4">{headline}</Headline>
-      <p className="mb-3">{description}</p>
-      <div className="w-32 h-1 bg-gray-400 rounded-sm" />
+      <p className="mb-3 text-center w-7/8 md:w-5/6">{description}</p>
+      <div className="w-32 h-0.5 bg-gray-400 rounded-sm" />
     </div>
   );
 }
@@ -172,8 +172,7 @@ export function ChangePersonal({
   ): Promise<void> => {
     const fullName = `${data.firstName} ${data.lastName}`;
 
-    if (fullName === authUser?.name)
-      return;
+    if (fullName === authUser?.name) return;
 
     setIsLoading(true);
 
@@ -238,16 +237,18 @@ export function ChangePersonal({
             <Form.Error>{errors.lastName?.message}</Form.Error>
           )}
         </Form.Group>
-        <Button
-          type="submit"
-          variant="primary"
-          el="button"
-          className="flex! items-center gap-1"
-          loading={isLoading}
-        >
-          <Save className="w-4" />
-          <span>Save changes</span>
-        </Button>
+        <Form.Group className='flex justify-center'>
+          <Button
+            type="submit"
+            variant="primary"
+            el="button"
+            className="flex! items-center gap-1"
+            loading={isLoading}
+          >
+            <Save className="w-4" />
+            <span>Save changes</span>
+          </Button>
+        </Form.Group>
       </Form>
     </>
   );
@@ -349,9 +350,7 @@ export function ChangePassword({
         <Form.Group className="mb-3">
           <Form.Label htmlFor="newPassword">New password</Form.Label>
           <Form.Control
-            type={
-              passwordVisible.isNewPasswordVisible ? 'text' : 'password'
-            }
+            type={passwordVisible.isNewPasswordVisible ? 'text' : 'password'}
             id="newPassword"
             {...register('newPassword')}
             hasError={Boolean(errors.newPassword)}
@@ -386,16 +385,18 @@ export function ChangePassword({
             <Form.Error>{errors.confirmPassword?.message}</Form.Error>
           )}
         </Form.Group>
-        <Button
-          type="submit"
-          variant="primary"
-          el="button"
-          className="flex! items-center gap-1"
-          loading={isLoading}
-        >
-          <Save className="w-4" />
-          <span>Save changes</span>
-        </Button>
+        <Form.Group className='flex justify-center'>
+          <Button
+            type="submit"
+            variant="primary"
+            el="button"
+            className="flex! items-center gap-1"
+            loading={isLoading}
+          >
+            <Save className="w-4" />
+            <span>Save changes</span>
+          </Button>
+        </Form.Group>
       </Form>
     </>
   );

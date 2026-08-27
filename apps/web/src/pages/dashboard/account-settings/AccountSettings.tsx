@@ -30,7 +30,7 @@ export default function AccountSettings(): React.JSX.Element {
         message={alertInfo?.message}
         onToggle={hideAlert}
       />
-      <article className="py-5 md:py-7">
+      <article className="py-5 md:py-10 md:flex md:flex-col md:items-center">
         <AccountSettingsHeader
           onShowAlert={showAlert}
           onSetAlertInfo={setAlertInfo}

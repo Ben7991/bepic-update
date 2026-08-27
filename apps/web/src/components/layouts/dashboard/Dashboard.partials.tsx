@@ -35,7 +35,7 @@ export function DashboardHeader({
   };
 
   return (
-    <header className="p-4 border-b border-b-gray-400 lg:border-b-0 xl:px-6">
+    <header className="p-4 border-b border-b-gray-400 lg:border-b-0 xl:px-6 sticky top-0 bg-white z-1">
       <Row className="items-center justify-between">
         <div className="flex items-center gap-3">
           <button
