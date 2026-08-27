@@ -1,31 +1,36 @@
 import { NestFactory } from '@nestjs/core';
-import { ConfigService } from '@nestjs/config';
 import { RequestMethod } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
 
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    cors: true,
+    cors: {
+      credentials: true,
+      origin: ['http://localhost:5173'],
+    },
   });
   app.setGlobalPrefix('api', {
-    exclude: [
-      {method: RequestMethod.GET, path: '/health'}
-    ],
+    exclude: [{ path: '/health', method: RequestMethod.GET }],
   });
+  app.use(cookieParser());
 
-  const configService: ConfigService = app.get(ConfigService);
-  const PORT = configService.get<number>('PORT') ?? 8000;
+  const configService = app.get<ConfigService>(ConfigService);
+  const PORT = configService.get<string>('PORT');
 
   const config = new DocumentBuilder()
-    .setTitle('Bepic API')
-    .setDescription('The Bepic API description')
-    .setVersion('1.0')
+    .setTitle('Bepic')
+    .setDescription('A network marketing service')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, document);
+  SwaggerModule.setup('api/docs', app, document);
 
-  await app.listen(PORT);
+  await app.listen(PORT ?? 8000);
 }
+
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 bootstrap();

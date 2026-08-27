@@ -4,6 +4,8 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "api:dev": "turbo run --filter=api dev",
+    "web:dev": "turbo run --filter=web dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types"
@@ -19,11 +21,17 @@
   "devEngines": {
     "packageManager": {
       "name": "npm",
-      "version": "11.13.0"
+      "version": "12.0.1"
     }
   },
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "allowScripts": {
+    "@scarf/scarf@1.4.0": true,
+    "sharp@0.34.5": true,
+    "unrs-resolver@1.12.2": true,
+    "@nestjs/core@11.0.1": true
+  }
 }

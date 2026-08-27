@@ -1,0 +1,286 @@
+import {
+  BadRequestException,
+  Body,
+  ClassSerializerInterceptor,
+  Controller,
+  FileTypeValidator,
+  Get,
+  HttpCode,
+  HttpStatus,
+  MaxFileSizeValidator,
+  ParseFilePipe,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+  ValidationPipe,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
+import type { Request, Response } from 'express';
+import 'multer';
+
+import { LoginDto } from './dto/login.dto';
+import { AuthService } from './auth.service';
+import { DataMessageInterceptor } from '../utils/interceptors/data-message.interceptor';
+import {
+  swaggerChangeImageResponse,
+  swaggerChangePasswordResponse,
+  swaggerChangePersonalInfoResponse,
+  swaggerGetAuthenticatedUserResponse,
+  swaggerLoginResponse,
+} from './auth.swagger';
+import { TokenType } from './auth.types';
+import { AuthGuard } from './guards/auth.guard';
+import { DataOnlyInterceptor } from '../utils/interceptors/data-only.interceptor';
+import { ChangePersonalDto } from './dto/change-personal.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+
+/**
+ * Handles all user authentication request
+ */
+@Controller('auth')
+export class AuthController {
+  private readonly _refreshTokenDuration = 60 * 60 * 12 * 1000;
+  private readonly _accessTokenDuration = 60 * 15 * 1000;
+
+  constructor(
+    private readonly _authService: AuthService,
+    private readonly _configService: ConfigService,
+  ) {}
+
+  /**
+   * Set the access token in the cookies of the response
+   * @param {Response} res
+   * @param {string} accessToken
+   * @param {number} duration
+   */
+  private _setAccessTokenInCookie(
+    res: Response,
+    accessToken?: string,
+    duration?: number,
+  ): void {
+    res.cookie(TokenType.ACCESS_TOKEN, accessToken ?? '', {
+      path: '/',
+      maxAge: duration ?? 0,
+      domain: this._configService.get('domain'),
+    });
+  }
+
+  /**
+   * Set the refresh token in the cookies of the response
+   * @param {Response} res
+   * @param {string} refreshToken
+   * @param {number} duration
+   */
+  private _setRefreshTokenInCookie(
+    res: Response,
+    refreshToken?: string,
+    duration?: number,
+  ): void {
+    res.cookie(TokenType.REFRESH_TOKEN, refreshToken ?? '', {
+      path: '/',
+      httpOnly: true,
+      maxAge: duration ?? 0,
+      domain: this._configService.get('DOMAIN'),
+      sameSite: this._configService.get('SAME_SITE'),
+    });
+  }
+
+  /**
+   * Handles incoming login request
+   * @param {LoginDto} body - an object from the request body
+   * @returns the authenticated info for a user
+   */
+  @ApiOperation(swaggerLoginResponse)
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @UseInterceptors(new DataMessageInterceptor('You are logged-in successfully'))
+  @Post('login')
+  async login(
+    @Body(ValidationPipe) body: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this._authService.login(body);
+
+    this._setRefreshTokenInCookie(
+      res,
+      result.token.refreshToken,
+      this._refreshTokenDuration,
+    );
+    this._setAccessTokenInCookie(
+      res,
+      result.token.accessToken,
+      this._accessTokenDuration,
+    );
+
+    return result.user;
+  }
+
+  /**
+   * Clears token in users cookies as well as
+   * return a logout success message
+   * @param {Request} req
+   * @param {Response} res
+   * @returns a logout message
+   */
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'OK',
+    example: {
+      message: 'Successfully logged out of the application',
+    },
+  })
+  @HttpCode(HttpStatus.OK)
+  @Post('logout')
+  logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    this._setRefreshTokenInCookie(res);
+    this._setAccessTokenInCookie(res);
+
+    return { message: 'Successfully logged out of the application' };
+  }
+
+  /**
+   * Returns the authenticated user using the refresh token
+   * @param {Request} req
+   * @returns properties of authenticated user
+   */
+  @ApiOperation(swaggerGetAuthenticatedUserResponse)
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @UseInterceptors(DataOnlyInterceptor)
+  @Get('user')
+  getAuthenticatedUser(@Req() req: Request) {
+    return req.user;
+  }
+
+  /**
+   * Handles incoming request to generate a new access token for authenticated users
+   * @param {Request} req - The incoming request object
+   * @param {Response} res - The outgoing response for the request
+   * @returns a message for a successfully refreshed access token
+   */
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'OK',
+    example: {
+      message: 'Token refreshed successfully',
+    },
+  })
+  @Get('refresh-token')
+  async refreshToken(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    if (!req.cookies) {
+      throw new UnauthorizedException('Access denied');
+    }
+
+    const token = req.cookies[TokenType.REFRESH_TOKEN] as string | undefined;
+    const accessToken = await this._authService.refreshToken(token);
+    this._setAccessTokenInCookie(res, accessToken, this._accessTokenDuration);
+
+    return { message: 'Token refreshed successfully' };
+  }
+
+  /**
+   * Handles incoming request to change user's personal information
+   * @param {ChangePersonalDto} body
+   * @returns
+   */
+  @ApiOperation(swaggerChangePersonalInfoResponse)
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('personal-info')
+  changePersonalInfo(
+    @Body(ValidationPipe) body: ChangePersonalDto,
+    @Req() req: Request,
+  ) {
+    return this._authService.changePersonalInfo(body, req.user);
+  }
+
+  /**
+   * Handles incoming request to change user's password
+   * @param {ChangePasswordDto} body - The request body
+   * @param {Request} req - The incoming request object
+   * @returns a success message after change
+   */
+  @ApiOperation(swaggerChangePasswordResponse)
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('password')
+  changePassword(
+    @Body(
+      new ValidationPipe({
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      }),
+    )
+    body: ChangePasswordDto,
+    @Req() req: Request,
+  ) {
+    return this._authService.changePassword(body, req.user);
+  }
+
+  /**
+   * Handles incoming request to change user's profile image
+   * @param {Express.Multer.File} file - The uploaded file
+   * @param {Request} req - The incoming request object
+   * @returns a success message after change
+   */
+  @ApiOperation(swaggerChangeImageResponse)
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(
+    new DataMessageInterceptor('Profile image uploaded successfully'),
+  )
+  @HttpCode(HttpStatus.OK)
+  @Post('change-image')
+  changeImage(
+    @Req() req: Request,
+    @UploadedFile(
+      new ParseFilePipe({
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 2 * 1024 * 1024,
+            message: 'Image size must be less than or equal to 2MB',
+          }),
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg|webp)' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Image is required');
+    }
+
+    return this._authService.changeImage(req.user, file);
+  }
+}

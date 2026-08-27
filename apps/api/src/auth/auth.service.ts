@@ -1,0 +1,309 @@
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { DataSource } from 'typeorm';
+import { sign, verify } from 'jsonwebtoken';
+import { compare, genSalt, hash } from 'bcryptjs';
+import { extname, join } from 'node:path';
+import { unlink, writeFile } from 'node:fs/promises';
+
+import { UserRepository } from './repositories/user.repository';
+import { LoginDto } from './dto/login.dto';
+import { EncryptionService } from './encryption.service';
+import { ApplicationException } from '../utils/exception/application.exception';
+import { LoginType, Status, TokenType } from './auth.types';
+import { AppLogger } from '../utils/logger/app.logger';
+import { ChangePersonalDto } from './dto/change-personal.dto';
+import { User } from './entities/user.entity';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { MessageOnlyType } from '../utils/types.utils';
+
+@Injectable()
+export class AuthService {
+  private readonly _logger = new AppLogger(AuthService.name);
+
+  constructor(
+    private readonly _dataSource: DataSource,
+    private readonly _userRepo: UserRepository,
+    private readonly _configService: ConfigService,
+    private readonly _encryptionService: EncryptionService,
+  ) {}
+
+  /**
+   * Handles user login
+   * @param {LoginDto} body - The data provided in the body of the request
+   * @returns a user object and tokens
+   */
+  async login(body: LoginDto): Promise<LoginType> {
+    try {
+      const existingUser = await this._userRepo.find(body.username);
+      const hashedPassword = existingUser ? existingUser.password : '';
+      const samePassword = await compare(body.password, hashedPassword);
+
+      if (
+        !existingUser ||
+        !samePassword ||
+        (existingUser && existingUser.status === Status.SUSPENDED)
+      ) {
+        throw new ApplicationException('Invalid username and or password');
+      }
+
+      const encryptedRefreshToken = this._encryptionService.encrypt(
+        this._generateRefreshToken(existingUser.id),
+      );
+      const encryptedAccessToken = this._encryptionService.encrypt(
+        this._generateAccessToken(existingUser.id),
+      );
+
+      return {
+        user: existingUser,
+        token: {
+          accessToken: encryptedAccessToken,
+          refreshToken: encryptedRefreshToken,
+        },
+      };
+    } catch (error) {
+      if (error instanceof ApplicationException) {
+        throw new BadRequestException(error.message);
+      }
+
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+
+      throw new InternalServerErrorException('Something went wrong');
+    }
+  }
+
+  /**
+   * Returns an env variable named `SECRET_KEY` from the
+   * env file, if it does exist throw and error
+   * @returns the secret key from the env file
+   */
+  private _getSecretKey(): string {
+    const secretKey = this._configService.get<string>('SECRET_KEY');
+
+    if (!secretKey) {
+      throw new Error('Secret key does not exist');
+    }
+
+    return secretKey;
+  }
+
+  /**
+   * Generates an access token by using the generated refresh token
+   * @param {string} payload - The refresh token
+   * @returns a generated access token
+   */
+  private _generateAccessToken(payload: string): string {
+    return sign(
+      { sub: payload, type: TokenType.ACCESS_TOKEN },
+      this._getSecretKey(),
+      {
+        algorithm: 'HS256',
+        expiresIn: '15m',
+      },
+    );
+  }
+
+  /**
+   * Generates a refresh token by using a payload where the sub is the
+   * user id
+   * @param payload - the user id
+   * @returns the refresh token
+   */
+  private _generateRefreshToken(payload: string): string {
+    return sign(
+      { sub: payload, type: TokenType.REFRESH_TOKEN },
+      this._getSecretKey(),
+      {
+        algorithm: 'HS256',
+        expiresIn: '12h',
+      },
+    );
+  }
+
+  /**
+   * Generate a new access token for the user
+   * @param {string} token - The refresh token provided during the request
+   * @returns a new generated access token
+   */
+  async refreshToken(token?: string): Promise<string> {
+    try {
+      if (!token) {
+        throw new ApplicationException('Access denied');
+      }
+
+      const decryptedToken = this._encryptionService.decrypt(token);
+      const result = verify(decryptedToken, this._getSecretKey(), {
+        algorithms: ['HS256'],
+      }) as unknown as { sub: string; type: string };
+
+      if (result.type !== String(TokenType.REFRESH_TOKEN))
+        throw new ApplicationException('Access denied');
+
+      const existingUser = await this._userRepo.find(result.sub);
+
+      if (!existingUser) throw new ApplicationException('Access denied');
+
+      return this._encryptionService.encrypt(
+        this._generateAccessToken(existingUser.id),
+      );
+    } catch (error) {
+      if (error instanceof ApplicationException)
+        throw new UnauthorizedException(error.message);
+
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+      throw new InternalServerErrorException('Something went wrong');
+    }
+  }
+
+  /**
+   * Change name of a user
+   * @param {ChangePersonalDto} body
+   * @param {User} user
+   * @returns
+   */
+  async changePersonalInfo(
+    body: ChangePersonalDto,
+    user: User,
+  ): Promise<MessageOnlyType> {
+    const queryRunner = this._dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await this._userRepo.update(queryRunner, user, {
+        name: body.name,
+        password: user.password,
+        status: user.status,
+      });
+
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return { message: 'Personal information changed successfully' };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+      throw new InternalServerErrorException('Something went wrong');
+    }
+  }
+
+  /**
+   * Change a user password
+   * @param {ChangePasswordDto} body - The new password info
+   * @param {User} user - The user requesting the change
+   */
+  async changePassword(
+    body: ChangePasswordDto,
+    user: User,
+  ): Promise<MessageOnlyType> {
+    if (!(body.newPassword === body.confirmPassword)) {
+      throw new BadRequestException('Passwords do not each other');
+    }
+
+    const queryRunner = this._dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const saltRounds = this._configService.get<string>('SALT_ROUNDS');
+
+      if (!saltRounds)
+        throw new Error('Salt rounds cannot be found in the list of secrets');
+
+      const salt = await genSalt(Number(saltRounds));
+      const hasedPassword = await hash(body.newPassword, salt);
+      await this._userRepo.update(queryRunner, user, {
+        name: user.name,
+        password: hasedPassword,
+        status: user.status,
+      });
+
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return { message: 'Password changed successfully' };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+      throw new InternalServerErrorException('Something went wrong');
+    }
+  }
+
+  /**
+   * Change a user's image
+   * @param {User} user - The user initiating the request
+   * @param {Express.Multer.File} file - The uploaded file
+   * @returns the image path
+   */
+  async changeImage(
+    user: User,
+    file: Express.Multer.File,
+  ): Promise<{ imagePath: string }> {
+    const queryRunner = this._dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    let newImagePath: string = '';
+    const oldImagePath = user?.imagePath;
+
+    try {
+      newImagePath = await this._uploadFile(file);
+      await this._userRepo.update(queryRunner, user, {
+        name: user.name,
+        password: user.password,
+        status: user.status,
+        imagePath: newImagePath,
+      });
+
+      if (oldImagePath) await unlink(oldImagePath);
+
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return { imagePath: newImagePath };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+
+      if (newImagePath) await unlink(newImagePath);
+
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+      throw new InternalServerErrorException('Something went wrong');
+    }
+  }
+
+  /**
+   * Stores the uploaded file in the uploads/users directory
+   * @param {Express.Multer.File} file - The uploaded file
+   * @returns the constructed image path
+   */
+  private async _uploadFile(file: Express.Multer.File): Promise<string> {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const ext = extname(file.originalname);
+    const filename = `${uniqueSuffix}${ext}`;
+
+    const uploadPath = join(process.cwd(), 'uploads', 'users', filename);
+    await writeFile(uploadPath, file.buffer);
+
+    return `uploads/users/${filename}`;
+  }
+}
