@@ -34,23 +34,26 @@ function Label({
 type ControlProps = {
   hasError?: boolean;
   leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 } & ComponentPropsWithRef<'input'>;
 
 function Control({
   hasError,
   leftIcon,
+  rightIcon,
   ...props
 }: ControlProps): React.JSX.Element {
   const { className, ...rest } = props;
   return (
     <div
-      className={`form-control border rounded-md flex items-center gap-2 ${hasError ? 'border-red-600!' : 'border-gray-300'} ${leftIcon ? 'px-3' : ''} ${className}`}
+      className={`form-control border rounded-md flex items-center gap-2 ${hasError ? 'border-red-600!' : 'border-gray-300'} ${leftIcon || rightIcon ? 'px-3' : ''}  ${className}`}
     >
       {leftIcon}
       <input
-        className={`${!leftIcon ? 'px-3' : ''} py-1.5 inline-block grow outline-none border-none`}
+        className={`${!leftIcon || !rightIcon ? 'px-3' : ''} py-1.5 inline-block grow outline-none border-none`}
         {...rest}
       />
+      {rightIcon}
     </div>
   );
 }
