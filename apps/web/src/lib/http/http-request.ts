@@ -13,9 +13,9 @@ type MutationType = 'POST' | 'PATCH' | 'PUT';
  * @returns {Promise<T>}
  */
 export async function mutate<T>(
-  data: unknown,
-  endpoint: string,
   mutation: MutationType,
+  endpoint: string,
+  data: unknown,
 ): Promise<T> {
   const response = await fetch(
     `${import.meta.env.VITE_BASE_API}/${endpoint}`,
@@ -31,7 +31,7 @@ export async function mutate<T>(
   if (response.status === StatusCodes.UN_AUTHORIZED) {
     const isRefreshed = await refreshToken();
     if (isRefreshed) {
-      return await mutate(data, endpoint, mutation);
+      return await mutate(mutation, endpoint, data);
     }
     throw new Error(result.message);
   } else if (FAILED_STATUS_CODES.includes(response.status)) {
