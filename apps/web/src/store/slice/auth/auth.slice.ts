@@ -25,12 +25,22 @@ const authSlice = createSlice({
       action: PayloadAction<Required<Pick<User, 'imagePath'>>>,
     ) => {
       state.user = {
-        ...state.user as User,
+        ...(state.user as User),
         imagePath: action.payload.imagePath,
+      };
+    },
+    changeName: (
+      state: AuthState,
+      action: PayloadAction<Required<Pick<User, 'name'>>>,
+    ) => {
+      state.user = {
+        ...(state.user as User),
+        name: action.payload.name,
       };
     },
   },
 });
 
-export const { setAuthUser, removeAuthUser, changeImagePath } = authSlice.actions;
+export const { setAuthUser, removeAuthUser, changeImagePath, changeName } =
+  authSlice.actions;
 export default authSlice.reducer;
