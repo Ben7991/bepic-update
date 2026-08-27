@@ -32,11 +32,11 @@ export function Button(props: ButtonProps | AnchorProps): React.JSX.Element {
     );
   }
 
-  const { className, ...rest } = props;
+  const { className, loading, ...rest } = props;
 
   return (
     <button className={`${variantClassNames} ${className}`} {...rest}>
-      {props.loading ? (
+      {loading ? (
         <div className="flex items-center gap-2">
           <div className="block w-5 h-5 border-4 border-white border-b-4 border-b-gray-400 rounded-full animate-spin" />
           <span>Loading...</span>

@@ -37,7 +37,7 @@ export function Alert({
       {show && (
         <motion.div
           initial={{ opacity: 0, translateY: 0 }}
-          animate={{ opacity: 1, translateY: "40px" }}
+          animate={{ opacity: 1, translateY: "30px" }}
           exit={{ opacity: 0, translateY: 0 }}
           className={`${isSuccess ? "bg-green-100" : "bg-red-100"} fixed left-1/2 -translate-x-1/2 border border-gray-300 rounded-md shadow-lg z-10 p-4 w-[90%] md:w-106.25 lg:w-137.5`}
         >
@@ -55,7 +55,7 @@ export function Alert({
             </div>
           </div>
           <button
-            className="absolute top-4 right-4 hover:text-red-600"
+            className="absolute top-3 right-3 hover:text-red-600"
             onClick={onToggle}
             type="button"
           >
