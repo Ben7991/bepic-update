@@ -18,7 +18,7 @@ export async function mutate<T>(
   mutation: MutationType,
 ): Promise<T> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_API}/${endpoint}`,
+    `${import.meta.env.VITE_BASE_API}/${endpoint}`,
     {
       method: mutation,
       body: JSON.stringify(data),
