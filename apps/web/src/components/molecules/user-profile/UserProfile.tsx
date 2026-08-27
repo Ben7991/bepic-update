@@ -23,9 +23,9 @@ export function UserProfile(): React.JSX.Element {
       )}
       <div>
         <p>
-          <strong className="font-medium text-black">Bernard Teye</strong>
+          <strong className="font-medium text-black">{user?.name}</strong>
         </p>
-        <span className="text-[0.9em]">Distributor</span>
+        <span className="text-[0.9em]">{user?.role}</span>
       </div>
     </div>
   );
