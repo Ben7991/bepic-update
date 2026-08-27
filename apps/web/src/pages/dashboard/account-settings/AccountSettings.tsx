@@ -7,6 +7,7 @@ import {
 } from './AccountSettings.partials';
 import { useAlert } from '../../../lib/hooks/use-alert/useAlert';
 import { Alert } from '../../../components/molecules/alert/Alert';
+import { ErrorBoundary } from '../../errors/error-boundary/ErrorBoundary';
 
 export default function AccountSettings(): React.JSX.Element {
   const [searchParams] = useSearchParams();
@@ -20,6 +21,15 @@ export default function AccountSettings(): React.JSX.Element {
 
   const activeTab = searchParams.get('tab') as
     'personal' | 'password' | undefined;
+
+  if (!activeTab || !['personal', 'password'].includes(activeTab)) {
+    return (
+      <ErrorBoundary
+        resetLink="/dashboard/account-settings?tab=personal"
+        message="Either tab is not provided or isn't recognized"
+      />
+    );
+  }
 
   return (
     <>
