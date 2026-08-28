@@ -10,6 +10,7 @@ import { AppLogger } from '../utils/logger/app.logger';
 import { IncentiveRepository } from './repositories/incentive.repository';
 import { ApplicationException } from '../utils/exception/application.exception';
 import { Incentive } from './entities/incentive.entity';
+import { ItemAvailabilityStatus, MessageOnlyType } from '../utils/types.utils';
 
 @Injectable()
 export class IncentiveService {
@@ -91,6 +92,44 @@ export class IncentiveService {
       await queryRunner.release();
 
       return incentive;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+
+      if (error instanceof ApplicationException)
+        throw new BadRequestException(error.message);
+
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+      throw new InternalServerErrorException('Something went wrong');
+    }
+  }
+
+  /**
+   * Handles fake deletion of incentive
+   * @param {number} id - incentive id
+   * @returns an object with containing a message
+   */
+  async destroy(id: number): Promise<MessageOnlyType> {
+    const queryRunner = this._dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const existingIncentive = await this._incentiveRepository.find(id);
+
+      if (!existingIncentive)
+        throw new ApplicationException('No incentive with such id exist');
+
+      await this._incentiveRepository.update(queryRunner, existingIncentive, {
+        status: ItemAvailabilityStatus.HIDDEN,
+      });
+
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return { message: 'Incentive deleted successfully' };
     } catch (error) {
       await queryRunner.rollbackTransaction();
       await queryRunner.release();

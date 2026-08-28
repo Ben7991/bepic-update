@@ -44,10 +44,11 @@ export class IncentiveRepository {
   async update(
     queryRunner: QueryRunner,
     incentive: Incentive,
-    data: Pick<Incentive, 'point' | 'award'>,
+    data: Partial<Pick<Incentive, 'point' | 'award' | 'status'>>,
   ): Promise<Incentive> {
-    incentive.point = data.point;
-    incentive.award = data.award;
+    incentive.point = data.point ?? incentive.point;
+    incentive.award = data.award ?? incentive.status;
+    incentive.status = data.status ?? incentive.status;
     return await queryRunner.manager.save(incentive);
   }
 

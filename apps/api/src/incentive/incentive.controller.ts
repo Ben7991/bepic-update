@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   HttpStatus,
   Param,
   ParseIntPipe,
@@ -16,6 +17,7 @@ import { IncentiveService } from './incentive.service';
 import { DataMessageInterceptor } from '../utils/interceptors/data-message.interceptor';
 import {
   swaggerCreateIncentiveResponse,
+  swaggerDestroyIncentiveResponse,
   swaggerUpdateIncentiveResponse,
 } from './incentive.swagger';
 
@@ -63,5 +65,16 @@ export class IncentiveController {
     body: IncentiveDto,
   ) {
     return this._incentiveService.update(body, id);
+  }
+
+  /**
+   * Delete existing incentive
+   * @param {number} id - the url parameter data
+   * @returns a response containing the updated incentive
+   */
+  @ApiOperation(swaggerDestroyIncentiveResponse)
+  @Delete(':id')
+  destroy(@Param('id', ParseIntPipe) id: number) {
+    return this._incentiveService.destroy(id);
   }
 }
