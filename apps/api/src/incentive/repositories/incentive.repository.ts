@@ -22,13 +22,30 @@ export class IncentiveRepository {
    * Adds a new incentive row in the `incentives` table
    * @param {QueryRunner} queryRunner
    * @param {Pick<Incentive, 'point' | 'award'>} data
-   * @returns a user object representing a row in the incentives table
+   * @returns an incentive representing a row in the incentives table
    */
   async create(
     queryRunner: QueryRunner,
     data: Pick<Incentive, 'point' | 'award'>,
   ): Promise<Incentive> {
     const incentive = new Incentive();
+    incentive.point = data.point;
+    incentive.award = data.award;
+    return await queryRunner.manager.save(incentive);
+  }
+
+  /**
+   * Updates existing incentive in the `incentives` table
+   * @param {QueryRunner} queryRunner
+   * @param {Incentive} incentive
+   * @param {Pick<Incentive, 'point' | 'award'>} data
+   * @returns an incentive representing a row in the incentives table
+   */
+  async update(
+    queryRunner: QueryRunner,
+    incentive: Incentive,
+    data: Pick<Incentive, 'point' | 'award'>,
+  ): Promise<Incentive> {
     incentive.point = data.point;
     incentive.award = data.award;
     return await queryRunner.manager.save(incentive);
@@ -44,6 +61,7 @@ export class IncentiveRepository {
     return this._createQueryBuilder()
       .where('point=:data')
       .orWhere('award=:data')
+      .orWhere('id=:data')
       .setParameters({ data })
       .getOne();
   }
