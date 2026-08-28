@@ -11,6 +11,7 @@ import { IncentiveRepository } from './repositories/incentive.repository';
 import { ApplicationException } from '../utils/exception/application.exception';
 import { Incentive } from './entities/incentive.entity';
 import { ItemAvailabilityStatus, MessageOnlyType } from '../utils/types.utils';
+import { Paginator } from '../utils/paginator/paginator';
 
 @Injectable()
 export class IncentiveService {
@@ -20,6 +21,27 @@ export class IncentiveService {
     private readonly _dataSource: DataSource,
     private readonly _incentiveRepository: IncentiveRepository,
   ) {}
+
+  /**
+   * Handles the pagination of incentives data
+   * @param {Paginator} paginator
+   * @returns an object containing, count and an array of incentives as data
+   */
+  async paginate(paginator: Paginator) {
+    try {
+      const [count, data] = await Promise.all([
+        this._incentiveRepository.count(paginator.query),
+        this._incentiveRepository.paginate(paginator),
+      ]);
+
+      return { count, data };
+    } catch (error) {
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+      throw new InternalServerErrorException('Something went wrong');
+    }
+  }
 
   /**
    * Handles creation of incentives. This function ensures there are no duplicate
