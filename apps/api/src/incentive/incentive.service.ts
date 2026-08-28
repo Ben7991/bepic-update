@@ -64,4 +64,44 @@ export class IncentiveService {
       throw new InternalServerErrorException('Something went wrong');
     }
   }
+
+  /**
+   * Handles incentive data update, specifically the point and award fields
+   * @param {IncentiveDto} body - the request body
+   * @returns newly added incentive data
+   */
+  async update(body: IncentiveDto, id: number): Promise<Incentive> {
+    const queryRunner = this._dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const existingIncentive = await this._incentiveRepository.find(id);
+
+      if (!existingIncentive)
+        throw new ApplicationException('No incentive with such id exist');
+
+      const incentive = await this._incentiveRepository.update(
+        queryRunner,
+        existingIncentive,
+        body,
+      );
+
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return incentive;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+
+      if (error instanceof ApplicationException)
+        throw new BadRequestException(error.message);
+
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+      throw new InternalServerErrorException('Something went wrong');
+    }
+  }
 }

@@ -39,3 +39,43 @@ export const swaggerCreateIncentiveResponse = {
     ...swaggerServerErrorResponse,
   },
 };
+
+export const swaggerUpdateIncentiveResponse = {
+  responses: {
+    200: {
+      description: 'OK',
+      content: {
+        'application/json': {
+          schema: {
+            example: {
+              message: 'Incentive update successfully',
+              data: {
+                id: '1',
+                createdAt: '2026-08-28T09:13:38.450Z',
+                updatedAt: '2026-08-28T09:13:38.450Z',
+                point: 7000,
+                award: 'Electronic',
+                status: 'ACTIVE',
+              },
+            },
+          },
+        },
+      },
+    },
+    400: {
+      description: 'Error',
+      content: {
+        'application/json': {
+          schema: {
+            example: {
+              message: 'No incentive with such id exist',
+              error: 'Bad Request',
+              statusCode: 400,
+            },
+          },
+        },
+      },
+    },
+    ...swaggerServerErrorResponse,
+  },
+};
