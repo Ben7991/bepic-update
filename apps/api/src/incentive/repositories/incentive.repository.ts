@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { DataSource, QueryRunner, SelectQueryBuilder } from 'typeorm';
 
 import { Incentive } from '../entities/incentive.entity';
+import { Paginator } from '../../utils/paginator/paginator';
+import { ItemAvailabilityStatus } from '../../utils/types.utils';
 
 /**
  * Handles all communication to the `incentives` table in the database
@@ -47,7 +49,7 @@ export class IncentiveRepository {
     data: Partial<Pick<Incentive, 'point' | 'award' | 'status'>>,
   ): Promise<Incentive> {
     incentive.point = data.point ?? incentive.point;
-    incentive.award = data.award ?? incentive.status;
+    incentive.award = data.award ?? incentive.award;
     incentive.status = data.status ?? incentive.status;
     return await queryRunner.manager.save(incentive);
   }
@@ -65,5 +67,42 @@ export class IncentiveRepository {
       .orWhere('id=:data')
       .setParameters({ data })
       .getOne();
+  }
+
+  /**
+   * Paginate incentives data
+   * @param {Paginator} paginator - the constructed paginator object
+   * @returns an array of incentives from the incentives table
+   */
+  paginate(paginator: Paginator): Promise<Array<Incentive>> {
+    return this._createQueryBuilder()
+      .where(
+        'status=:status AND (point LIKE :data OR award LIKE :data OR id LIKE :data)',
+        {
+          status: ItemAvailabilityStatus.ACTIVE,
+          data: `%${paginator.query}%`,
+        },
+      )
+      .skip(paginator.page * paginator.perPage)
+      .take(paginator.perPage)
+      .orderBy('incentives.id', 'DESC')
+      .getMany();
+  }
+
+  /**
+   * Countes the number of rows, when a search term is provied
+   * @param {string} query - the search term
+   * @returns a number of rows that matches the search term
+   */
+  count(query: string): Promise<number> {
+    return this._createQueryBuilder()
+      .where(
+        'status=:status AND (point LIKE :data OR award LIKE :data OR id LIKE :data)',
+        {
+          status: ItemAvailabilityStatus.ACTIVE,
+          data: `%${query}%`,
+        },
+      )
+      .getCount();
   }
 }
