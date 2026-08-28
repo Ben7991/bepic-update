@@ -9,10 +9,11 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
   UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 
 import { IncentiveDto } from './dto/incentive.dto';
 import { IncentiveService } from './incentive.service';
@@ -25,10 +26,16 @@ import {
 } from './incentive.swagger';
 import { PaginatorBuilder } from '../shared/providers/paginator.builder';
 import { QueryPaginatorDto } from '../utils/dto/query-paginator.dto';
+import { AuthGuard } from '../auth/guards/auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../utils/decorators/roles.decorator';
+import { Role } from '../auth/auth.types';
 
 /**
  * Handles all incoming request relating to incentives
  */
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 @Controller('incentives')
 export class IncentiveController {
   constructor(
@@ -61,6 +68,8 @@ export class IncentiveController {
    * @returns a response containing the new incentive
    */
   @ApiOperation(swaggerCreateIncentiveResponse)
+  @Roles([Role.ADMIN])
+  @UseGuards(RolesGuard)
   @UseInterceptors(new DataMessageInterceptor('Incentive added successfully'))
   @Post()
   create(
@@ -80,6 +89,8 @@ export class IncentiveController {
    * @returns a response containing the updated incentive
    */
   @ApiOperation(swaggerUpdateIncentiveResponse)
+  @Roles([Role.ADMIN])
+  @UseGuards(RolesGuard)
   @UseInterceptors(new DataMessageInterceptor('Incentive updated successfully'))
   @Patch(':id')
   update(
@@ -100,6 +111,8 @@ export class IncentiveController {
    * @returns a response containing the updated incentive
    */
   @ApiOperation(swaggerDestroyIncentiveResponse)
+  @Roles([Role.ADMIN])
+  @UseGuards(RolesGuard)
   @Delete(':id')
   destroy(@Param('id', ParseIntPipe) id: number) {
     return this._incentiveService.destroy(id);
