@@ -9,7 +9,7 @@ export function UserProfile(): React.JSX.Element {
   const user = useAppSelector((state) => state.auth.user);
 
   return (
-    <div className="flex items-center gap-3 mb-8">
+    <div className="flex items-center gap-3">
       {user?.imagePath ? (
         <img
           src={`${import.meta.env.VITE_BASE_SERVER}/${user.imagePath}`}

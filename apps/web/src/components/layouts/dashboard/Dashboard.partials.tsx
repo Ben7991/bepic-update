@@ -1,17 +1,16 @@
 import { useState, type MouseEvent, type SubmitEvent } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { AnimatePresence } from 'motion/react';
-import { LogOut, Menu, Settings, UserRound } from 'lucide-react';
+import { ChevronDown, LogOut, Menu, Settings } from 'lucide-react';
 import { motion } from 'motion/react';
 
-import logo from '../../../assets/icon.png';
 import { Row } from '../../atoms/grid/Grid';
 import { Form } from '../../atoms/form/Form';
 import { Button } from '../../atoms/button/Button';
 import { Headline } from '../../atoms/headline/Headline';
 import { useOutsideClick } from '../../../lib/hooks/use-outside-click/useOutsideClick';
-import { signOut } from './Dashboard.utils';
-import { useAppDispatch } from '../../../store/index.util';
+import { getHeadline, signOut } from './Dashboard.utils';
+import { useAppDispatch, useAppSelector } from '../../../store/index.util';
 import { removeAuthUser } from '../../../store/slice/auth/auth.slice';
 
 type DashboardHeaderProps = {
@@ -23,7 +22,9 @@ export function DashboardHeader({
   toggleDrawer,
   toggleLogoutModal,
 }: DashboardHeaderProps): React.JSX.Element {
+  const { pathname } = useLocation();
   const [showMenu, setShowMenu] = useState(false);
+  const user = useAppSelector(state => state.auth.user)
 
   useOutsideClick((): void => {
     setShowMenu(false);
@@ -34,8 +35,10 @@ export function DashboardHeader({
     setShowMenu(!showMenu);
   };
 
+  const headline = getHeadline(pathname);
+
   return (
-    <header className="p-4 border-b border-b-gray-400 lg:border-b-0 xl:px-6 sticky top-0 bg-white z-1">
+    <header className="p-4 border-b border-b-gray-400 lg:border-b-0 xl:p-6 sticky top-0 z-1">
       <Row className="items-center justify-between">
         <div className="flex items-center gap-3">
           <button
@@ -44,14 +47,15 @@ export function DashboardHeader({
           >
             <Menu className="w-5" />
           </button>
-          <div className="flex items-center gap-1">
-            <img src={logo} alt="Energy888 logo" className="w-8.75 h-8.75" />
-            <Headline tag="h4">Energy888</Headline>
-          </div>
+          <Headline tag="h4">{headline}</Headline>
         </div>
         <div className="flex items-center gap-3 lg:gap-0">
-          <button onClick={toggleMenu} className="flex items-center">
-            <UserRound />
+          <button onClick={toggleMenu} className="flex items-center gap-1">
+            <img 
+              src={`${import.meta.env.VITE_BASE_SERVER}/${user?.imagePath}`}
+              alt={`${user?.name}'s profile`}
+              className='w-10 h-10 rounded-full object-cover' />
+            <ChevronDown />
           </button>
           <div className="relative">
             <AnimatePresence>

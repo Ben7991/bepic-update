@@ -20,7 +20,7 @@ export default function Dashboard(): React.JSX.Element {
   return (
     <main className="lg:flex lg:w-full lg:h-screen">
       <SideDrawer state={showDrawer} toggleDrawer={toggleDrawer} />
-      <article className="grow">
+      <article className="grow bg-gray-50">
         <DashboardHeader
           toggleDrawer={toggleDrawer}
           toggleLogoutModal={toggleLogoutModal}
