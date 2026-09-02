@@ -90,7 +90,7 @@ export class IncentiveRepository {
   }
 
   /**
-   * Countes the number of rows, when a search term is provied
+   * Count the number of rows, when a search term is provied
    * @param {string} query - the search term
    * @returns a number of rows that matches the search term
    */
@@ -103,6 +103,18 @@ export class IncentiveRepository {
           data: `%${query}%`,
         },
       )
+      .getCount();
+  }
+
+  /**
+   * Count the number of rows based on the availability status
+   * @returns a number of rows that matches the search term
+   */
+  countActiveIncentives(): Promise<number> {
+    return this._createQueryBuilder()
+      .where('status=:status', {
+        status: ItemAvailabilityStatus.ACTIVE,
+      })
       .getCount();
   }
 }

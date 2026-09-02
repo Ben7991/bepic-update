@@ -29,12 +29,13 @@ export class IncentiveService {
    */
   async paginate(paginator: Paginator) {
     try {
-      const [count, data] = await Promise.all([
+      const [count, activeIncentives, data] = await Promise.all([
         this._incentiveRepository.count(paginator.query),
+        this._incentiveRepository.countActiveIncentives(),
         this._incentiveRepository.paginate(paginator),
       ]);
 
-      return { count, data };
+      return { count, activeIncentives, data };
     } catch (error) {
       this._logger.error(
         error instanceof Error ? error.message : JSON.stringify(error),
