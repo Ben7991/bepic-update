@@ -43,6 +43,7 @@ describe('AuthService', () => {
   let encryptionService: EncryptionService;
   let configService: ConfigService;
   let dataSource: DataSource;
+  let loggerError: jest.Mock;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -83,7 +84,13 @@ describe('AuthService', () => {
     configService = module.get<ConfigService>(ConfigService);
     dataSource = module.get<DataSource>(DataSource);
 
-    jest.restoreAllMocks();
+    loggerError = jest.fn();
+    Object.defineProperty(authService, '_logger', {
+      value: {
+        error: loggerError,
+      },
+      writable: true,
+    });
   });
 
   it('should be defined', () => {
@@ -92,6 +99,10 @@ describe('AuthService', () => {
     expect(encryptionService).toBeDefined();
     expect(configService).toBeDefined();
     expect(dataSource).toBeDefined();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('login', () => {
