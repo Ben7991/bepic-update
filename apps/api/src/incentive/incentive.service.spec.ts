@@ -47,7 +47,6 @@ describe('IncentiveService', () => {
             find: jest.fn(),
             paginate: jest.fn(),
             count: jest.fn(),
-            countActiveIncentives: jest.fn(),
           },
         },
       ],
@@ -95,9 +94,6 @@ describe('IncentiveService', () => {
         },
       ];
       jest.spyOn(incentiveRepository, 'count').mockResolvedValue(1);
-      jest
-        .spyOn(incentiveRepository, 'countActiveIncentives')
-        .mockResolvedValue(1);
       jest
         .spyOn(incentiveRepository, 'paginate')
         .mockResolvedValue(mockedIncentives);
