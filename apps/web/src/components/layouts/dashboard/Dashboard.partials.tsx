@@ -38,7 +38,7 @@ export function DashboardHeader({
   const headline = getHeadline(pathname);
 
   return (
-    <header className="p-4 border-b border-b-gray-400 lg:border-b-0 xl:p-6 sticky top-0 z-1">
+    <header className="p-4 border-b border-b-gray-400 lg:border-b-gray-300 xl:px-6 sticky top-0 z-1">
       <Row className="items-center justify-between">
         <div className="flex items-center gap-3">
           <button
@@ -47,7 +47,7 @@ export function DashboardHeader({
           >
             <Menu className="w-5" />
           </button>
-          <Headline tag="h4">{headline}</Headline>
+          <Headline tag="h3">{headline}</Headline>
         </div>
         <div className="flex items-center gap-3 lg:gap-0">
           <button onClick={toggleMenu} className="flex items-center gap-1">
