@@ -1,5 +1,6 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
@@ -52,6 +53,7 @@ export class IncentiveController {
   @ApiQuery({ name: 'q', required: false })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'perPage', required: false })
+  @UseInterceptors(ClassSerializerInterceptor)
   @Get()
   paginate(@Query() params: QueryPaginatorDto) {
     const paginator = this._paginatorBuilder

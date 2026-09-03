@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 import { ItemAvailabilityStatus } from '../../utils/types.utils';
 
@@ -37,5 +38,6 @@ export class Incentive {
     enum: ItemAvailabilityStatus,
     default: ItemAvailabilityStatus.ACTIVE,
   })
+  @Exclude()
   status: ItemAvailabilityStatus;
 }
