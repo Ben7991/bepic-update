@@ -11,19 +11,19 @@ import { UserProfile } from '../../molecules/user-profile/UserProfile';
 import { AppLogo } from '../../molecules/app-logo/AppLogo';
 
 type SideDrawerProps = {
-  toggleDrawer: VoidFunction;
+  onHideDrawer: VoidFunction;
   state: boolean;
 };
 
 export function SideDrawer({
   state,
-  toggleDrawer,
+  onHideDrawer,
 }: SideDrawerProps): React.JSX.Element {
   const { pathname } = useLocation();
 
   return (
     <>
-      {state && isMobileView(1023) && <Backdrop onClick={toggleDrawer} />}
+      {state && isMobileView(1023) && <Backdrop onClick={onHideDrawer} />}
       <motion.aside
         animate={{ width: state ? '318.75px' : '0' }}
         className={`fixed top-0 left-0 h-screen ${state ? 'z-10' : ''} w-0 py-4 lg:py-6 overflow-auto lg:static lg:h-auto lg:basis-67.5 xl:basis-75 bg-gray-100 overflow-y-auto`}
@@ -36,7 +36,7 @@ export function SideDrawer({
                 <li key={item.name}>
                   <Link
                     to={item.path}
-                    onClick={toggleDrawer}
+                    onClick={onHideDrawer}
                     className={`flex items-center gap-2 py-1 px-2.5 rounded-md ${getActiveLinkClassnames(pathname, item.path)}`}
                   >
                     {item.icon}

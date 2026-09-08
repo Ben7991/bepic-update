@@ -9,20 +9,16 @@ export default function Dashboard(): React.JSX.Element {
   const [showDrawer, setShowDrawer] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const toggleDrawer = (): void => {
-    setShowDrawer(!showDrawer);
-  };
-
   const toggleLogoutModal = (): void => {
     setShowLogoutModal(!showLogoutModal);
   };
 
   return (
     <main className="lg:flex lg:w-full lg:h-screen">
-      <SideDrawer state={showDrawer} toggleDrawer={toggleDrawer} />
+      <SideDrawer state={showDrawer} onHideDrawer={() => setShowDrawer(false)} />
       <article className="grow bg-gray-50">
         <DashboardHeader
-          toggleDrawer={toggleDrawer}
+          toggleDrawer={() => setShowDrawer(true)}
           toggleLogoutModal={toggleLogoutModal}
         />
         <div className="p-4 md:px-4 md:pb-4 md:pt-0 xl:px-6">
