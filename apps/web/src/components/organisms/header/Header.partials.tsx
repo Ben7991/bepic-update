@@ -96,7 +96,6 @@ function LoginForm({
             : 'Something went wrong',
         variant: 'danger',
       });
-    } finally {
       onToggleAlert();
     }
 
