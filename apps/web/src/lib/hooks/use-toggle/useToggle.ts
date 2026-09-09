@@ -6,7 +6,7 @@ export function useToggle() {
   const [show, setShow] = useState(false);
 
   const toggle = (): void => {
-    setShow(!show);
+    setShow(state => !state);
   };
 
   return { show, toggle };
