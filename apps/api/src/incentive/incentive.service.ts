@@ -61,14 +61,29 @@ export class IncentiveService {
       const existingIncentiveByAward = await this._incentiveRepository.find(
         body.award,
       );
+      const isHidden =
+        existingIncentiveByAward?.status === ItemAvailabilityStatus.HIDDEN ||
+        existingIncentiveByPoint?.status === ItemAvailabilityStatus.HIDDEN;
 
-      if (existingIncentiveByPoint || existingIncentiveByAward)
+      if ((existingIncentiveByPoint || existingIncentiveByAward) && !isHidden)
         throw new ApplicationException('No duplicate entries are allowed');
 
-      const incentive = await this._incentiveRepository.create(
-        queryRunner,
-        body,
-      );
+      let incentive: Incentive;
+      const existingIncentive = (existingIncentiveByAward ??
+        existingIncentiveByPoint) as Incentive;
+
+      if (isHidden) {
+        incentive = await this._incentiveRepository.update(
+          queryRunner,
+          existingIncentive,
+          {
+            status: ItemAvailabilityStatus.ACTIVE,
+            ...body,
+          },
+        );
+      } else {
+        incentive = await this._incentiveRepository.create(queryRunner, body);
+      }
 
       await queryRunner.commitTransaction();
       await queryRunner.release();
