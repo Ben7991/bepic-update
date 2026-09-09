@@ -8,7 +8,6 @@ import placeholderProfile from '../../../assets/user-profile.svg';
 import { Form } from '../../../components/atoms/form/Form';
 import { Headline } from '../../../components/atoms/headline/Headline';
 import type {
-  AccountSettingsHeaderProps,
   ChangePasswordInputs,
   ChangePasswordProps,
   ChangePersonalInputs,
@@ -31,7 +30,7 @@ import {
 } from '../../../store/slice/auth/auth.slice';
 import type { AlertProps } from '../../../components/molecules/alert/Alert';
 import { mutate } from '../../../lib/http/http-request';
-import type { ResponseWithOnlyMessage } from '../../../lib/utils/types.utils';
+import type { AlertComponentProps, ResponseWithOnlyMessage } from '../../../lib/utils/types.utils';
 import { useNavigate } from 'react-router';
 import { signOut } from '../../../components/layouts/dashboard/Dashboard.utils';
 import { TogglePassword } from '../../../components/molecules/toggle-password/TogglePassword';
@@ -39,7 +38,7 @@ import { TogglePassword } from '../../../components/molecules/toggle-password/To
 export function AccountSettingsHeader({
   onShowAlert,
   onSetAlertInfo,
-}: AccountSettingsHeaderProps): React.JSX.Element {
+}: AlertComponentProps): React.JSX.Element {
   const dispatch = useAppDispatch();
   const [isUploading, setIsUploading] = useState(false);
   const uploadInputRef = useRef<HTMLInputElement>(null);
