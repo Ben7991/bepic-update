@@ -3,9 +3,10 @@ import { AnimatePresence, motion } from "motion/react";
 import { CircleCheckBig, CircleX, X } from "lucide-react";
 
 import { Headline } from "../../atoms/headline/Headline";
+import type { AlertVariant } from "../../../lib/utils/types.utils";
 
 export type AlertPopupProps = {
-  variant?: "success" | "danger";
+  variant?: AlertVariant;
   show: boolean;
   headline: string;
   message?: string;

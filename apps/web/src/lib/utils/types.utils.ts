@@ -29,6 +29,7 @@ export type ServerErrorResponse = {
 };
 
 export type AuthState = 'loading' | 'authenticated' | 'not-authenticated';
+export type AlertVariant = "success" | "danger";
 
 export type AlertComponentProps = {
   onShowAlert: VoidFunction;
