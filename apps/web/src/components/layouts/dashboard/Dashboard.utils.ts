@@ -26,3 +26,12 @@ export function getHeadline(pathname: string): string {
   const pathnameWithoutParams = pathname.slice(0, queryParamIndex)
   return DASHBOARD_PATHS.find(item => item.path === pathnameWithoutParams)?.name ?? ''
 }
+
+export function showSearchInput(pathname: string): boolean {
+  const preferredPathnameToShowSearchInput = DASHBOARD_PATHS.map(item => item.path);
+  const indexForDashboardPath = preferredPathnameToShowSearchInput.indexOf('/dashboard');
+  const deleteCount = 1;
+  preferredPathnameToShowSearchInput.splice(indexForDashboardPath, deleteCount);
+
+  return preferredPathnameToShowSearchInput.includes(pathname);
+}

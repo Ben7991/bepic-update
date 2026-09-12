@@ -1,11 +1,10 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { Search, SquarePen, Trash2 } from 'lucide-react';
+import { SquarePen, Trash2 } from 'lucide-react';
 
 import { get } from '../../../lib/http/http-request';
 import type { Incentive } from './Incentive.types';
 import type { ResponseWithRecord } from '../../../lib/utils/types.utils';
-import { Form } from '../../../components/atoms/form/Form';
 import { Button } from '../../../components/atoms/button/Button';
 import { Breadcrumb } from '../../../components/molecules/breadcrumb/Breadcrumb';
 import { DataTable } from '../../../components/organisms/data-table/DataTable';
@@ -73,18 +72,12 @@ export default function Incentives(): React.JSX.Element {
         message={alertInfo?.message}
         onToggle={hideAlert}
       />
-      <Breadcrumb className="mt-4">
-        <Breadcrumb.Item path="/dashboard">Dashboard</Breadcrumb.Item>
-        <Breadcrumb.Separator />
-        <Breadcrumb.Item>Incentives</Breadcrumb.Item>
-      </Breadcrumb>
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 my-4 md:mb-6">
-        <Form.Control
-          type="search"
-          placeholder="Search for incentives ..."
-          className="basis-full  md:basis-5/12 lg:basis-4/12 2xl:basis-3/12"
-          leftIcon={<Search width={16} height={16} className="text-gray-400" />}
-        />
+        <Breadcrumb>
+          <Breadcrumb.Item path="/dashboard">Dashboard</Breadcrumb.Item>
+          <Breadcrumb.Separator />
+          <Breadcrumb.Item>Incentives</Breadcrumb.Item>
+        </Breadcrumb>
         <Button
           el="button"
           type="button"
