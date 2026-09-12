@@ -20,7 +20,7 @@ function Item({children, path}: BreadcrumbItemProps): React.JSX.Element {
   }
 
   return (
-    <Link to={path} className='text-gray-500'>{children}</Link>
+    <Link to={path} className='text-gray-500 underline'>{children}</Link>
   );
 }
 
