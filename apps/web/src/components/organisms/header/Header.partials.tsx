@@ -8,12 +8,12 @@ import { Lock, UserRoundPen } from 'lucide-react';
 import { Button } from '../../atoms/button/Button';
 import { login, loginSchema } from './Header.utils';
 import {
-  useAlert,
-  type AlertInfoType,
-} from '../../../lib/hooks/use-alert/useAlert';
+  useAlertPopup,
+  type AlertPopupInfoType,
+} from '../../../lib/hooks/use-alert-popup/useAlertPopup';
 import { useToggle } from '../../../lib/hooks/use-toggle/useToggle';
 import { Form } from '../../atoms/form/Form';
-import { Alert } from '../../molecules/alert/Alert';
+import { AlertPopup } from '../../molecules/alert-popup/AlertPopup';
 import { Modal } from '../modal/Modal';
 import { useAppDispatch } from '../../../store/index.util';
 import { setAuthUser } from '../../../store/slice/auth/auth.slice';
@@ -26,11 +26,11 @@ export function DisplayLoginForm(): React.JSX.Element {
     state: alertState,
     hideAlert,
     showAlert,
-  } = useAlert();
+  } = useAlertPopup();
 
   return (
     <>
-      <Alert
+      <AlertPopup
         show={alertState}
         variant={alertInfo?.variant}
         headline="Login"
@@ -55,7 +55,7 @@ export function DisplayLoginForm(): React.JSX.Element {
 
 type LoginFormProps = {
   onToggleAlert: VoidFunction;
-  onSetAlertInfo: Dispatch<SetStateAction<AlertInfoType | undefined>>;
+  onSetAlertInfo: Dispatch<SetStateAction<AlertPopupInfoType | undefined>>;
 };
 
 function LoginForm({

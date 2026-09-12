@@ -28,7 +28,7 @@ import {
   changeName,
   removeAuthUser,
 } from '../../../store/slice/auth/auth.slice';
-import type { AlertProps } from '../../../components/molecules/alert/Alert';
+import type { AlertPopupProps } from '../../../components/molecules/alert-popup/AlertPopup';
 import { mutate } from '../../../lib/http/http-request';
 import type { AlertComponentProps, ResponseWithOnlyMessage } from '../../../lib/utils/types.utils';
 import { useNavigate } from 'react-router';
@@ -60,7 +60,7 @@ export function AccountSettingsHeader({
     setIsUploading(true);
 
     let message = '',
-      variant: AlertProps['variant'] = 'success';
+      variant: AlertPopupProps['variant'] = 'success';
 
     try {
       const result = await uploadProfileImage(file);
@@ -176,7 +176,7 @@ export function ChangePersonal({
     setIsLoading(true);
 
     let message = '',
-      variant: AlertProps['variant'] = 'success';
+      variant: AlertPopupProps['variant'] = 'success';
 
     try {
       const result = await mutate<ResponseWithOnlyMessage>(

@@ -5,8 +5,8 @@ import {
   ChangePassword,
   ChangePersonal,
 } from './AccountSettings.partials';
-import { useAlert } from '../../../lib/hooks/use-alert/useAlert';
-import { Alert } from '../../../components/molecules/alert/Alert';
+import { useAlertPopup } from '../../../lib/hooks/use-alert-popup/useAlertPopup';
+import { AlertPopup } from '../../../components/molecules/alert-popup/AlertPopup';
 import { ErrorBoundary } from '../../errors/error-boundary/ErrorBoundary';
 
 export default function AccountSettings(): React.JSX.Element {
@@ -17,7 +17,7 @@ export default function AccountSettings(): React.JSX.Element {
     state: alertState,
     hideAlert,
     showAlert,
-  } = useAlert();
+  } = useAlertPopup();
 
   const activeTab = searchParams.get('tab') as
     'personal' | 'password' | undefined;
@@ -33,7 +33,7 @@ export default function AccountSettings(): React.JSX.Element {
 
   return (
     <>
-      <Alert
+      <AlertPopup
         show={alertState}
         variant={alertInfo?.variant}
         headline="Login"

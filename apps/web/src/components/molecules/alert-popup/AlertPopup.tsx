@@ -4,7 +4,7 @@ import { CircleCheckBig, CircleX, X } from "lucide-react";
 
 import { Headline } from "../../atoms/headline/Headline";
 
-export type AlertProps = {
+export type AlertPopupProps = {
   variant?: "success" | "danger";
   show: boolean;
   headline: string;
@@ -12,13 +12,13 @@ export type AlertProps = {
   onToggle: VoidFunction;
 };
 
-export function Alert({
+export function AlertPopup({
   variant,
   headline,
   message,
   show,
   onToggle,
-}: AlertProps): React.JSX.Element {
+}: AlertPopupProps): React.JSX.Element {
   const isSuccess = variant === "success";
   const timerRef = useRef<number>(null);
 

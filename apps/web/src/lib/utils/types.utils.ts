@@ -1,4 +1,4 @@
-import type { AlertInfoType } from '../hooks/use-alert/useAlert';
+import type { AlertPopupInfoType } from '../hooks/use-alert-popup/useAlertPopup';
 
 export type ChildrenOnlyProps = {
   children: React.ReactNode;
@@ -33,7 +33,7 @@ export type AuthState = 'loading' | 'authenticated' | 'not-authenticated';
 export type AlertComponentProps = {
   onShowAlert: VoidFunction;
   onSetAlertInfo: React.Dispatch<
-    React.SetStateAction<AlertInfoType | undefined>
+    React.SetStateAction<AlertPopupInfoType | undefined>
   >;
 };
 

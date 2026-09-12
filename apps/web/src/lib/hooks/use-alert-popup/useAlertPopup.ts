@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 
-import type { AlertProps } from "../../../components/molecules/alert/Alert";
+import type { AlertPopupProps } from "../../../components/molecules/alert-popup/AlertPopup";
 
-export type AlertInfoType = Pick<AlertProps, "variant" | "message">;
+export type AlertPopupInfoType = Pick<AlertPopupProps, "variant" | "message">;
 
-export function useAlert() {
-  const [alertInfo, setAlertInfo] = useState<AlertInfoType>();
+export function useAlertPopup() {
+  const [alertInfo, setAlertInfo] = useState<AlertPopupInfoType>();
   const [state, setState] = useState(false);
 
   const hideAlert = (): void => {
