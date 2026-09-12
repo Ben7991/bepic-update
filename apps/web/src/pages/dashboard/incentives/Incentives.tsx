@@ -17,7 +17,7 @@ import {
 } from '../../../store/slice/incentives/incentive.slice';
 import { useAlertPopup } from '../../../lib/hooks/use-alert-popup/useAlertPopup';
 import { AlertPopup } from '../../../components/molecules/alert-popup/AlertPopup';
-import { makeFirstLetterUppercase } from '../../../lib/utils/helpers.utils';
+import { makeDigitHumanReadable, makeFirstLetterUppercase } from '../../../lib/utils/helpers.utils';
 
 export default function Incentives(): React.JSX.Element {
   const dispatch = useAppDispatch();
@@ -35,7 +35,9 @@ export default function Incentives(): React.JSX.Element {
   useEffect(() => {
     const fetchIncentives = async () => {
       try {
-        const result = await get<ResponseWithRecord<Incentive>>('incentives');
+        const result = await get<ResponseWithRecord<Incentive>>(
+          `incentives?${searchParams.toString()}`,
+        );
         dispatch(
           loadIncentives({
             ...result,
@@ -53,7 +55,7 @@ export default function Incentives(): React.JSX.Element {
     };
 
     fetchIncentives();
-  }, [dispatch]);
+  }, [dispatch, searchParams]);
 
   const hideModal = (): void => {
     navigate(basePathname);
@@ -94,7 +96,7 @@ export default function Incentives(): React.JSX.Element {
             <DataTable.Cell>
               {new Date(item.createdAt).toLocaleString()}
             </DataTable.Cell>
-            <DataTable.Cell>{item.point}</DataTable.Cell>
+            <DataTable.Cell>{makeDigitHumanReadable(item.point)}</DataTable.Cell>
             <DataTable.Cell>{item.award}</DataTable.Cell>
             <DataTable.Cell>
               <DataTable.Actions>
