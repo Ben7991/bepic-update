@@ -72,6 +72,7 @@ export class IncentiveController {
   @ApiOperation(swaggerCreateIncentiveResponse)
   @Roles([Role.ADMIN])
   @UseGuards(RolesGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
   @UseInterceptors(new DataMessageInterceptor('Incentive added successfully'))
   @Post()
   create(
@@ -93,6 +94,7 @@ export class IncentiveController {
   @ApiOperation(swaggerUpdateIncentiveResponse)
   @Roles([Role.ADMIN])
   @UseGuards(RolesGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
   @UseInterceptors(new DataMessageInterceptor('Incentive updated successfully'))
   @Patch(':id')
   update(
