@@ -1,0 +1,15 @@
+.table {
+  width: 100%;
+}
+
+.table td,
+.table th {
+  border-bottom: 1px solid var(--color-gray-200);
+  padding: 7px 10px;
+  text-align: left;
+}
+
+.table th {
+  background-color: var(--color-gray-100);
+  border-top: 1px solid var(--color-gray-200);
+}
