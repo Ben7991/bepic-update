@@ -5,7 +5,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Exclude } from 'class-transformer';
+import { Exclude, Transform } from 'class-transformer';
 
 import { ItemAvailabilityStatus } from '../../utils/types.utils';
 
@@ -15,6 +15,7 @@ export class Incentive {
     unsigned: true,
     type: 'bigint',
   })
+  @Transform(({ value }: { value: string }) => Number(value))
   id: number;
 
   @CreateDateColumn({
