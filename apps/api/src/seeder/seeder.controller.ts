@@ -17,7 +17,16 @@ export class SeederController {
    * @returns a admin user
    */
   @Post('create-admin')
-  async createAdmin() {
+  createAdmin() {
     return this._seederService.createAdmin();
+  }
+
+  /**
+   * Handles incoming request that needs to seed the database with some data
+   * @returns a admin user
+   */
+  @Post('load-incentives')
+  loadIncentive() {
+    return this._seederService.loadIncentives();
   }
 }

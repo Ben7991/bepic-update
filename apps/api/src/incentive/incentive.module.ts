@@ -11,5 +11,6 @@ import { AuthModule } from '../auth/auth.module';
   imports: [AuthModule, TypeOrmModule.forFeature([Incentive])],
   controllers: [IncentiveController],
   providers: [IncentiveService, IncentiveRepository],
+  exports: [IncentiveRepository],
 })
 export class IncentiveModule {}
