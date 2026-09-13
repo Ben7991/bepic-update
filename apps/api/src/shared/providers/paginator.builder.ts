@@ -5,7 +5,7 @@ import { Paginator } from '../../utils/paginator/paginator';
 @Injectable()
 export class PaginatorBuilder {
   private _paginator: Paginator;
-  private PER_PAGE_DEFAULT = 10;
+  private PER_PAGE_DEFAULT = 15;
   private PAGE_DEFAULT = 0;
 
   constructor() {
