@@ -14,14 +14,14 @@ export default function Dashboard(): React.JSX.Element {
   };
 
   return (
-    <main className="lg:flex lg:w-full lg:h-screen">
+    <main className="lg:flex lg:w-full lg:h-screen lg:overflow-hidden">
       <SideDrawer state={showDrawer} onHideDrawer={() => setShowDrawer(false)} />
-      <article className="grow bg-gray-50">
+      <article className="grow bg-gray-50 flex flex-col">
         <DashboardHeader
           toggleDrawer={() => setShowDrawer(true)}
           toggleLogoutModal={toggleLogoutModal}
         />
-        <div className="p-4 md:px-4 md:pb-4 md:pt-0 xl:px-6">
+        <div className="p-4 md:px-4 md:pb-10 md:pt-0 xl:px-6 lg:overflow-auto">
           <Outlet />
         </div>
       </article>

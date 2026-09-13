@@ -17,7 +17,7 @@ export function DataTable({
   return (
     <div>
       <table className={`${css.table} border-collapse`}>
-        <thead>
+        <thead className='sticky top-16.5 lg:top-0 xl:-top-px z-2'>
           <tr>
             {columnHeadlines.map((headline, index) => (
               <th key={`${headline}-${index}`}>{headline}</th>

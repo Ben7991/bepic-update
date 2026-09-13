@@ -57,7 +57,7 @@ export function DashboardHeader({
   const headline = getHeadline(pathname);
 
   return (
-    <header className="p-4 border-b border-b-gray-400 lg:border-b-gray-300 xl:px-6 sticky top-0 z-1">
+    <header className="bg-gray-50 p-4 border-b border-b-gray-400 lg:border-b-gray-300 xl:px-6 sticky top-0 z-1">
       <Row className="items-center justify-between">
         <div className="flex items-center gap-3">
           <button
