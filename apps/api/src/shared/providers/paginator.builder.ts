@@ -33,6 +33,8 @@ export class PaginatorBuilder {
 
   setPage(page: string): PaginatorBuilder {
     this._paginator.page = this._convertToNumber(page, this.PAGE_DEFAULT);
+    if (this._paginator.page === 1) this._paginator.page = 0;
+    if (this._paginator.page > 1) this._paginator.page -= 1;
     return this;
   }
 
