@@ -29,7 +29,7 @@ export type ServerErrorResponse = {
 };
 
 export type AuthState = 'loading' | 'authenticated' | 'not-authenticated';
-export type AlertVariant = "success" | "danger";
+export type AlertVariant = 'success' | 'danger';
 
 export type AlertComponentProps = {
   onShowAlert: VoidFunction;
@@ -37,6 +37,8 @@ export type AlertComponentProps = {
     React.SetStateAction<AlertPopupInfoType | undefined>
   >;
 };
+
+export type PaginationType = { perPage: number; page: number; q: string };
 
 export type Role = 'ADMIN' | 'DISTRIBUTOR';
 
@@ -49,4 +51,3 @@ export type User = {
   role: Role;
   imagePath?: string;
 };
-
