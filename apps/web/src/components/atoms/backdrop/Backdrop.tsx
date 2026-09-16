@@ -1,6 +1,6 @@
 "use client";
 
-import { ComponentPropsWithoutRef } from "react";
+import { type ComponentPropsWithoutRef } from "react";
 
 export function Backdrop({
   className,
@@ -8,7 +8,7 @@ export function Backdrop({
 }: ComponentPropsWithoutRef<"div">): React.JSX.Element {
   return (
     <div
-      className={`fixed top-0 left-0 w-full h-screen bg-white/30 backdrop-blur-sm z-5 ${className}`}
+      className={`fixed top-0 left-0 w-full h-screen bg-white/30 backdrop-blur-sm z-5 ${className ?? ''}`}
       {...props}
     />
   );

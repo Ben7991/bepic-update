@@ -4,7 +4,7 @@ import {
   changePasswordSchema,
   changePersonalSchema,
 } from './AccountSettings.utils';
-import type { AlertInfoType } from '../../../lib/hooks/use-alert/useAlert';
+import type { AlertComponentProps } from '../../../lib/utils/types.utils';
 
 export type TabHeaderProps = {
   headline: string;
@@ -14,19 +14,12 @@ export type TabHeaderProps = {
 export type ChangePersonalInputs = InferType<typeof changePersonalSchema>;
 export type ChangePasswordInputs = InferType<typeof changePasswordSchema>;
 
-export type AccountSettingsHeaderProps = {
-  onShowAlert: VoidFunction;
-  onSetAlertInfo: React.Dispatch<
-    React.SetStateAction<AlertInfoType | undefined>
-  >;
-};
-
 export type ChangePersonalProps = Pick<
-  AccountSettingsHeaderProps,
+  AlertComponentProps,
   'onSetAlertInfo' | 'onShowAlert'
 >;
 
 export type ChangePasswordProps = Pick<
-  AccountSettingsHeaderProps,
+  AlertComponentProps,
   'onSetAlertInfo' | 'onShowAlert'
 >;

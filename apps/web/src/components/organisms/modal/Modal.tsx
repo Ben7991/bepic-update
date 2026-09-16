@@ -1,10 +1,11 @@
-import { useEffect } from "react";
-import { AnimatePresence } from "motion/react";
-import { X } from "lucide-react";
-import { motion } from "motion/react";
+import { useEffect } from 'react';
+import { AnimatePresence } from 'motion/react';
+import { X } from 'lucide-react';
+import { motion } from 'motion/react';
 
-import { Backdrop } from "../../atoms/backdrop/Backdrop";
-import { Headline } from "../../atoms/headline/Headline";
+import { Backdrop } from '../../atoms/backdrop/Backdrop';
+import { Headline } from '../../atoms/headline/Headline';
+import { createPortal } from 'react-dom';
 
 type ModalProps = {
   title: string;
@@ -13,7 +14,14 @@ type ModalProps = {
   onToggle: VoidFunction;
 };
 
-export function Modal({
+export function Modal(props: ModalProps): React.JSX.Element {
+  return createPortal(
+    <ModalContent {...props} />,
+    document.querySelector('#modal-container') as HTMLDivElement,
+  );
+}
+
+function ModalContent({
   title,
   state,
   children,
@@ -24,7 +32,7 @@ export function Modal({
     const originalOverflow = body.style.overflow;
 
     if (state) {
-      body.style.overflow = "hidden";
+      body.style.overflow = 'hidden';
     } else {
       body.style.overflow = originalOverflow;
     }

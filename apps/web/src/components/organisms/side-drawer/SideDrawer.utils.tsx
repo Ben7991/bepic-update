@@ -22,9 +22,9 @@ export const getActiveLinkClassnames = (
   preferredPathname: string,
 ): string => {
   if (currentPathname === preferredPathname) {
-    return 'bg-blue-600 text-white';
+    return 'text-blue-600 bg-blue-200';
   }
-  return 'hover:bg-gray-300';
+  return 'hover:bg-gray-200';
 };
 
 export const DASHBOARD_PATHS: Array<{

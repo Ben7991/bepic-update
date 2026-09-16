@@ -5,8 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { describe, beforeEach, it, expect, jest } from '@jest/globals';
-import { DataSource, QueryRunner } from 'typeorm';
+import { DataSource } from 'typeorm';
 import bcryptjs from 'bcryptjs';
 import jsonwebtoken from 'jsonwebtoken';
 
@@ -16,6 +15,7 @@ import { EncryptionService } from './encryption.service';
 import { LoginDto } from './dto/login.dto';
 import { Status, TokenType } from './auth.types';
 import { User } from './entities/user.entity';
+import { mockedQueryRunner } from '../utils/mocks.utils';
 
 jest.mock('bcryptjs');
 jest.mock('jsonwebtoken');
@@ -30,6 +30,7 @@ const mockedPersonalInfo = {
 };
 
 const mockedPasswordInfo = {
+  currentPassword: 'current-password',
   newPassword: 'password',
   confirmPassword: 'password',
 };
@@ -42,14 +43,7 @@ describe('AuthService', () => {
   let encryptionService: EncryptionService;
   let configService: ConfigService;
   let dataSource: DataSource;
-
-  const mockedQueryRunner = {
-    connect: jest.fn(),
-    startTransaction: jest.fn(),
-    commitTransaction: jest.fn(),
-    rollbackTransaction: jest.fn(),
-    release: jest.fn(),
-  } as unknown as QueryRunner;
+  let loggerError: jest.Mock;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -90,7 +84,13 @@ describe('AuthService', () => {
     configService = module.get<ConfigService>(ConfigService);
     dataSource = module.get<DataSource>(DataSource);
 
-    jest.restoreAllMocks();
+    loggerError = jest.fn();
+    Object.defineProperty(authService, '_logger', {
+      value: {
+        error: loggerError,
+      },
+      writable: true,
+    });
   });
 
   it('should be defined', () => {
@@ -99,6 +99,10 @@ describe('AuthService', () => {
     expect(encryptionService).toBeDefined();
     expect(configService).toBeDefined();
     expect(dataSource).toBeDefined();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('login', () => {
