@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { SeederModule } from './seeder/seeder.module';
 import { IncentiveModule } from './incentive/incentive.module';
 import { SharedModule } from './shared/shared.module';
+import { ProductModule } from './product/product.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { SharedModule } from './shared/shared.module';
     SeederModule,
     IncentiveModule,
     SharedModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [],
