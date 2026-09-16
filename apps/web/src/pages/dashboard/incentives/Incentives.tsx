@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { SquarePen, Trash2 } from 'lucide-react';
 
 import { get } from '../../../lib/http/http-request';
@@ -17,11 +17,18 @@ import {
 } from '../../../store/slice/incentives/incentive.slice';
 import { useAlertPopup } from '../../../lib/hooks/use-alert-popup/useAlertPopup';
 import { AlertPopup } from '../../../components/molecules/alert-popup/AlertPopup';
-import { makeDigitHumanReadable, makeFirstLetterUppercase } from '../../../lib/utils/helpers.utils';
+import {
+  constructPaginationString,
+  extractPaginationFromQueryParams,
+  makeDigitHumanReadable,
+  makeFirstLetterUppercase,
+} from '../../../lib/utils/helpers.utils';
+import { Paginator } from '../../../components/organisms/paginator/Paginator';
 
 export default function Incentives(): React.JSX.Element {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const incentiveState = useAppSelector((state) => state.incentive);
   const {
@@ -58,12 +65,24 @@ export default function Incentives(): React.JSX.Element {
   }, [dispatch, searchParams]);
 
   const hideModal = (): void => {
-    navigate(basePathname);
+    const pagination = extractPaginationFromQueryParams(searchParams);
+    const params = constructPaginationString(pagination);
+    navigate(`${pathname}${params ? '?' + params : ''}`);
+  };
+
+  const handleDataTableAction = (
+    action: 'edit' | 'delete',
+    id: number,
+  ): void => {
+    const pagination = extractPaginationFromQueryParams(searchParams);
+    const params = constructPaginationString(pagination);
+    navigate(
+      `${pathname}?action=${action}&id=${id}${params ? '&' + params : ''}`,
+    );
   };
 
   const action = searchParams.get('action');
   const idInSearchParams = searchParams.get('id');
-  const basePathname = '/dashboard/incentives';
 
   return (
     <>
@@ -85,7 +104,7 @@ export default function Incentives(): React.JSX.Element {
           type="button"
           variant="primary"
           className="flex! items-center gap-2"
-          onClick={() => navigate(`${basePathname}?action=create`)}
+          onClick={() => navigate(`${pathname}?action=create`)}
         >
           Add Incentive
         </Button>
@@ -96,24 +115,22 @@ export default function Incentives(): React.JSX.Element {
             <DataTable.Cell>
               {new Date(item.createdAt).toLocaleString()}
             </DataTable.Cell>
-            <DataTable.Cell>{makeDigitHumanReadable(item.point)}</DataTable.Cell>
+            <DataTable.Cell>
+              {makeDigitHumanReadable(item.point)}
+            </DataTable.Cell>
             <DataTable.Cell>{item.award}</DataTable.Cell>
             <DataTable.Cell>
               <DataTable.Actions>
                 <DataTable.Action
                   className="flex! items-center gap-2"
-                  onClick={() =>
-                    navigate(`${basePathname}?action=edit&id=${item.id}`)
-                  }
+                  onClick={() => handleDataTableAction('edit', item.id)}
                 >
                   <SquarePen width={16} height={16} />
                   <span>Edit</span>
                 </DataTable.Action>
                 <DataTable.Action
                   className="flex! items-center gap-2 text-red-500"
-                  onClick={() =>
-                    navigate(`${basePathname}?action=delete&id=${item.id}`)
-                  }
+                  onClick={() => handleDataTableAction('delete', item.id)}
                 >
                   <Trash2 width={16} height={16} />
                   <span>Delete</span>
@@ -123,6 +140,10 @@ export default function Incentives(): React.JSX.Element {
           </DataTable.Row>
         ))}
       </DataTable>
+      <Paginator>
+        <Paginator.PerPage count={incentiveState.count} />
+        <Paginator.Page count={incentiveState.count} />
+      </Paginator>
       <Modal
         title={`${makeFirstLetterUppercase(action ?? undefined)} Incentive`}
         state={Boolean(action)}
