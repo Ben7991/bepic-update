@@ -9,7 +9,7 @@ import {
 
 @Entity({ name: 'products' })
 export class Product {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   @Transform(({ value }: { value: string }) => Number(value))
   id: number;
 
@@ -36,6 +36,7 @@ export class Product {
   @Column({
     type: 'decimal',
     precision: 10,
+    unsigned: true,
     scale: 2,
     transformer: {
       to: (value: number) => value,
@@ -46,6 +47,7 @@ export class Product {
 
   @Column({
     type: 'smallint',
+    unique: true,
   })
   point: number;
 }
