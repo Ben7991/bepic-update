@@ -38,6 +38,25 @@ export class ProductRepository {
   }
 
   /**
+   * Updates existing product in the `products` table
+   * @param queryRunner
+   * @param product
+   * @param data
+   * @returns an product representing a row in the products table
+   */
+  async update(
+    queryRunner: QueryRunner,
+    product: Product,
+    data: Partial<Pick<Product, 'name' | 'point' | 'image' | 'price'>>,
+  ): Promise<Product> {
+    product.name = data.name ?? product.name;
+    product.point = data.point ?? product.point;
+    product.price = data.price ?? product.price;
+    product.image = data.image ?? product.image;
+    return await queryRunner.manager.save(product);
+  }
+
+  /**
    * Retrieves an product object from the `products` table or null
    * if the provided data isn't mapped to any column in the table
    * @param {string} data
