@@ -98,7 +98,7 @@ describe('IncentiveService', () => {
         .spyOn(incentiveRepository, 'paginate')
         .mockResolvedValue(mockedIncentives);
       await expect(incentiveService.paginate(mockedPaginator)).resolves.toEqual(
-        { count: 1, activeIncentives: 1, data: mockedIncentives },
+        { count: 1, data: mockedIncentives },
       );
     });
 
