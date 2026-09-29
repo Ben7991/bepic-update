@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   FileTypeValidator,
@@ -19,6 +20,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiOperation, ApiQuery } from '@nestjs/swagger';
 
 import {
+  swaggerChangeImageResponse,
   swaggerCreateProductResponse,
   swaggerGetProductsResponse,
   swaggerUpdateProductResponse,
@@ -111,5 +113,52 @@ export class ProductController {
     body: UpdateProductDto,
   ) {
     return this._productService.update(body, id);
+  }
+
+  /**
+   * Handles incoming request to change user's profile image
+   * @param file - The uploaded file
+   * @param id - the product id
+   * @returns a success message after change
+   */
+  @ApiOperation(swaggerChangeImageResponse)
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(
+    new DataMessageInterceptor('Product image uploaded successfully'),
+  )
+  @Patch('change-image/:id')
+  changeImage(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile(
+      new ParseFilePipe({
+        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 2 * 1024 * 1024,
+            message: 'Image size must be less than or equal to 2MB',
+          }),
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg|webp)' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Image is required');
+    }
+
+    return this._productService.changeImage(id, file);
   }
 }

@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { extname, join } from 'node:path';
-import { writeFile } from 'node:fs/promises';
+import { unlink, writeFile } from 'node:fs/promises';
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { Product } from './entities/product.entity';
@@ -128,7 +128,7 @@ export class ProductService {
       const existingProduct = await this._productRepository.find(id);
 
       if (!existingProduct)
-        throw new ApplicationException('No product with such id exist');
+        throw new ApplicationException('Product not recognized');
 
       const product = await this._productRepository.update(
         queryRunner,
@@ -146,6 +146,50 @@ export class ProductService {
 
       if (error instanceof ApplicationException)
         throw new BadRequestException(error.message);
+
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+      throw new InternalServerErrorException('Something went wrong');
+    }
+  }
+
+  /**
+   * Change a product's image
+   * @param id - The product id
+   * @param file - The uploaded file
+   * @returns the image path
+   */
+  async changeImage(
+    id: number,
+    file: Express.Multer.File,
+  ): Promise<{ image: string }> {
+    const queryRunner = this._dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    let newImagePath: string = '';
+
+    try {
+      const existingProduct = await this._productRepository.find(id);
+
+      if (!existingProduct)
+        throw new ApplicationException('Product not recognized');
+
+      await unlink(existingProduct.image);
+      newImagePath = await this._uploadFile(file);
+      await this._productRepository.update(queryRunner, existingProduct, {
+        image: newImagePath,
+      });
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return { image: newImagePath };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+
+      if (newImagePath) await unlink(newImagePath);
 
       this._logger.error(
         error instanceof Error ? error.message : JSON.stringify(error),

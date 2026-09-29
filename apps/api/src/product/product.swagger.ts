@@ -93,15 +93,50 @@ export const swaggerUpdateProductResponse = {
         },
       },
     },
-    400: {
+    422: {
       description: 'Error',
       content: {
         'application/json': {
           schema: {
             example: {
-              message: 'No product with such id exist',
+              message: 'Product not recognized',
               error: 'Bad Request',
-              statusCode: 400,
+              statusCode: 422,
+            },
+          },
+        },
+      },
+    },
+    ...swaggerServerErrorResponse,
+  },
+};
+
+export const swaggerChangeImageResponse = {
+  responses: {
+    200: {
+      description: 'OK',
+      content: {
+        'application/json': {
+          schema: {
+            example: {
+              message: 'Product image uploaded successfully',
+              data: {
+                image: 'abcd.png',
+              },
+            },
+          },
+        },
+      },
+    },
+    422: {
+      description: 'Error',
+      content: {
+        'application/json': {
+          schema: {
+            example: {
+              message: 'Image size must be less than or equal to 2MB',
+              error: 'BadRequest',
+              statusCode: 422,
             },
           },
         },
