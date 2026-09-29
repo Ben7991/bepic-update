@@ -7,12 +7,13 @@ import { DataSource } from 'typeorm';
 import { extname, join } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 
-import { ProductDto } from './dto/product.dto';
+import { CreateProductDto } from './dto/create-product.dto';
 import { Product } from './entities/product.entity';
 import { AppLogger } from '../utils/logger/app.logger';
 import { ProductRepository } from './repositories/product.repository';
 import { ApplicationException } from '../utils/exception/application.exception';
 import { Paginator } from '../utils/paginator/paginator';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -52,7 +53,10 @@ export class ProductService {
    * @param file the uploaded product image
    * @returns
    */
-  async create(body: ProductDto, file: Express.Multer.File): Promise<Product> {
+  async create(
+    body: CreateProductDto,
+    file: Express.Multer.File,
+  ): Promise<Product> {
     const queryRunner = this._dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -107,5 +111,46 @@ export class ProductService {
     await writeFile(uploadPath, file.buffer);
 
     return `uploads/products/${filename}`;
+  }
+
+  /**
+   * Handles product data update
+   * @param body - the request body
+   * @param id - the id of the product to update
+   * @returns an update product data
+   */
+  async update(body: UpdateProductDto, id: number): Promise<Product> {
+    const queryRunner = this._dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const existingProduct = await this._productRepository.find(id);
+
+      if (!existingProduct)
+        throw new ApplicationException('No product with such id exist');
+
+      const product = await this._productRepository.update(
+        queryRunner,
+        existingProduct,
+        body,
+      );
+
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return product;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+
+      if (error instanceof ApplicationException)
+        throw new BadRequestException(error.message);
+
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+      throw new InternalServerErrorException('Something went wrong');
+    }
   }
 }
