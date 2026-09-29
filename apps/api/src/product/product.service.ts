@@ -12,6 +12,7 @@ import { Product } from './entities/product.entity';
 import { AppLogger } from '../utils/logger/app.logger';
 import { ProductRepository } from './repositories/product.repository';
 import { ApplicationException } from '../utils/exception/application.exception';
+import { Paginator } from '../utils/paginator/paginator';
 
 @Injectable()
 export class ProductService {
@@ -21,6 +22,26 @@ export class ProductService {
     private readonly _dataSource: DataSource,
     private readonly _productRepository: ProductRepository,
   ) {}
+
+  /**
+   * Handles the pagination of products data
+   * @param {Paginator} paginator
+   * @returns an object containing, count and an array of products as data
+   */
+  async paginate(paginator: Paginator) {
+    try {
+      const [count, data] = await Promise.all([
+        this._productRepository.count(paginator.query),
+        this._productRepository.paginate(paginator),
+      ]);
+      return { count, data };
+    } catch (error) {
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+      throw new InternalServerErrorException('Something went wrong');
+    }
+  }
 
   /**
    * Handles addition of new products details in the file system

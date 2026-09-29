@@ -2,26 +2,55 @@ import {
   Body,
   Controller,
   FileTypeValidator,
+  Get,
   HttpStatus,
   MaxFileSizeValidator,
   ParseFilePipe,
   Post,
+  Query,
   UploadedFile,
   UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiQuery } from '@nestjs/swagger';
 
 import { ProductService } from './product.service';
 import { ProductDto } from './dto/product.dto';
 import { apiBodyToCreateProduct } from './product.utils';
 import { DataMessageInterceptor } from '../utils/interceptors/data-message.interceptor';
-import { swaggerCreateProductResponse } from './product.swagger';
+import {
+  swaggerCreateProductResponse,
+  swaggerGetProductsResponse,
+} from './product.swagger';
+import { PaginatorBuilder } from '../shared/providers/paginator.builder';
+import { QueryPaginatorDto } from '../utils/dto/query-paginator.dto';
 
 @Controller('products')
 export class ProductController {
-  constructor(private readonly _productService: ProductService) {}
+  constructor(
+    private readonly _paginatorBuilder: PaginatorBuilder,
+    private readonly _productService: ProductService,
+  ) {}
+
+  /**
+   * Handles pagination of product data
+   * @param {QueryPaginatorDto} params - the paginated query params fields
+   * @returns a response containing the paginated result
+   */
+  @ApiOperation(swaggerGetProductsResponse)
+  @ApiQuery({ name: 'q', required: false })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'perPage', required: false })
+  @Get()
+  paginate(@Query() params: QueryPaginatorDto) {
+    const paginator = this._paginatorBuilder
+      .setPage(params.page)
+      .setPerPage(params.perPage)
+      .setQuery(params.q)
+      .getResult();
+    return this._productService.paginate(paginator);
+  }
 
   /**
    * Handles incoming request to create a new product
