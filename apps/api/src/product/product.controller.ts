@@ -13,11 +13,18 @@ import {
   Post,
   Query,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiQuery,
+} from '@nestjs/swagger';
 
 import {
   swaggerChangeImageResponse,
@@ -32,7 +39,13 @@ import { DataMessageInterceptor } from '../utils/interceptors/data-message.inter
 import { PaginatorBuilder } from '../shared/providers/paginator.builder';
 import { QueryPaginatorDto } from '../utils/dto/query-paginator.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { AuthGuard } from '../auth/guards/auth.guard';
+import { Role } from '../auth/auth.types';
+import { Roles } from '../utils/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 @Controller('products')
 export class ProductController {
   constructor(
@@ -73,6 +86,8 @@ export class ProductController {
   })
   @ApiConsumes('multipart/form-data')
   @ApiOperation(swaggerCreateProductResponse)
+  @Roles([Role.ADMIN])
+  @UseGuards(RolesGuard)
   @UseInterceptors(FileInterceptor('image'))
   @UseInterceptors(new DataMessageInterceptor('Product added successfully'))
   @Post()
@@ -101,6 +116,8 @@ export class ProductController {
    * @returns a response containing the updated product
    */
   @ApiOperation(swaggerUpdateProductResponse)
+  @Roles([Role.ADMIN])
+  @UseGuards(RolesGuard)
   @UseInterceptors(new DataMessageInterceptor('Product updated successfully'))
   @Patch(':id')
   update(
@@ -138,6 +155,8 @@ export class ProductController {
   @UseInterceptors(
     new DataMessageInterceptor('Product image uploaded successfully'),
   )
+  @Roles([Role.ADMIN])
+  @UseGuards(RolesGuard)
   @Patch('change-image/:id')
   changeImage(
     @Param('id', ParseIntPipe) id: number,
