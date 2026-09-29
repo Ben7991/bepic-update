@@ -1,4 +1,90 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { extname, join } from 'node:path';
+import { writeFile } from 'node:fs/promises';
+
+import { ProductDto } from './dto/product.dto';
+import { Product } from './entities/product.entity';
+import { AppLogger } from '../utils/logger/app.logger';
+import { ProductRepository } from './repositories/product.repository';
+import { ApplicationException } from '../utils/exception/application.exception';
 
 @Injectable()
-export class ProductService {}
+export class ProductService {
+  private readonly _logger = new AppLogger(ProductService.name);
+
+  constructor(
+    private readonly _dataSource: DataSource,
+    private readonly _productRepository: ProductRepository,
+  ) {}
+
+  /**
+   * Handles addition of new products details in the file system
+   * and the database. It as well ensures that no duplicate product
+   * details are ever entered into the database
+   *
+   * @param body the request body excluding the uploaded file
+   * @param file the uploaded product image
+   * @returns
+   */
+  async create(body: ProductDto, file: Express.Multer.File): Promise<Product> {
+    const queryRunner = this._dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const existingProductByName = await this._productRepository.find(
+        body.name,
+      );
+
+      if (existingProductByName)
+        throw new ApplicationException(
+          'No duplicate product names are allowed',
+        );
+
+      const imagePath = await this._uploadFile(file);
+      const product = await this._productRepository.create(queryRunner, {
+        name: body.name,
+        point: +body.point,
+        price: +body.price,
+        image: imagePath,
+      });
+
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return product;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+
+      if (error instanceof ApplicationException)
+        throw new BadRequestException(error.message);
+
+      this._logger.error(
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
+      throw new InternalServerErrorException('Something went wrong');
+    }
+  }
+
+  /**
+   * Uploads the product image into the file system
+   * @param file the product image
+   * @returns a generated directory path of the uploaded image
+   */
+  private async _uploadFile(file: Express.Multer.File): Promise<string> {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const ext = extname(file.originalname);
+    const filename = `${uniqueSuffix}${ext}`;
+
+    const uploadPath = join(process.cwd(), 'uploads', 'products', filename);
+    await writeFile(uploadPath, file.buffer);
+
+    return `uploads/products/${filename}`;
+  }
+}
