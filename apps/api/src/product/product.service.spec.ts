@@ -1,11 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 
 import { ProductService } from './product.service';
 import { mockedQueryRunner } from '../utils/mocks.utils';
 import { ProductRepository } from './repositories/product.repository';
 import { Paginator } from '../utils/paginator/paginator';
-import { InternalServerErrorException } from '@nestjs/common';
+import { Product } from './entities/product.entity';
+
+jest.mock('node:path');
+jest.mock('node:fs/promises');
 
 const mockedPaginator = {
   query: '',
@@ -24,6 +31,15 @@ const mockedProducts = [
     point: 50,
   },
 ];
+const mockedFile = {
+  originalname: 'image-1.jpg',
+  buffer: Buffer.from([1, 2, 3]),
+} as unknown as Express.Multer.File;
+const mockedCreateProductDto = {
+  name: 'Product',
+  price: 150,
+  point: 20,
+};
 
 describe('ProductService', () => {
   let service: ProductService;
@@ -64,6 +80,8 @@ describe('ProductService', () => {
       },
       writable: true,
     });
+
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -104,6 +122,38 @@ describe('ProductService', () => {
       await expect(service.paginate(mockedPaginator)).rejects.toThrow(
         InternalServerErrorException,
       );
+    });
+  });
+
+  describe('create', () => {
+    it('should return a newly created product', async () => {
+      const mockedProduct = {
+        id: 1,
+        ...mockedCreateProductDto,
+        image: 'image-1.jpg',
+      } as unknown as Product;
+      const findSpy = jest
+        .spyOn(productRepository, 'find')
+        .mockResolvedValue(null);
+      jest.spyOn(productRepository, 'create').mockResolvedValue(mockedProduct);
+      await expect(
+        service.create(mockedCreateProductDto, mockedFile),
+      ).resolves.toEqual(mockedProduct);
+      expect(findSpy).toHaveBeenCalledWith(mockedCreateProductDto.name);
+    });
+
+    it('should throw if find return an existing product', async () => {
+      const mockedProduct = {
+        id: 1,
+        ...mockedCreateProductDto,
+        image: 'image-1.jpg',
+      } as unknown as Product;
+      jest.spyOn(productRepository, 'find').mockResolvedValue(mockedProduct);
+      const createSpy = jest.spyOn(productRepository, 'create');
+      await expect(
+        service.create(mockedCreateProductDto, mockedFile),
+      ).rejects.toThrow(BadRequestException);
+      expect(createSpy).not.toHaveBeenCalled();
     });
   });
 });
