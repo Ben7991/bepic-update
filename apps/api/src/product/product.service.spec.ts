@@ -35,7 +35,7 @@ const mockedFile = {
   originalname: 'image-1.jpg',
   buffer: Buffer.from([1, 2, 3]),
 } as unknown as Express.Multer.File;
-const mockedCreateProductDto = {
+const mockedProductDto = {
   name: 'Product',
   price: 150,
   point: 20,
@@ -61,6 +61,7 @@ describe('ProductService', () => {
           provide: ProductRepository,
           useValue: {
             create: jest.fn(),
+            update: jest.fn(),
             find: jest.fn(),
             count: jest.fn(),
             paginate: jest.fn(),
@@ -129,7 +130,7 @@ describe('ProductService', () => {
     it('should return a newly created product', async () => {
       const mockedProduct = {
         id: 1,
-        ...mockedCreateProductDto,
+        ...mockedProductDto,
         image: 'image-1.jpg',
       } as unknown as Product;
       const findSpy = jest
@@ -137,23 +138,52 @@ describe('ProductService', () => {
         .mockResolvedValue(null);
       jest.spyOn(productRepository, 'create').mockResolvedValue(mockedProduct);
       await expect(
-        service.create(mockedCreateProductDto, mockedFile),
+        service.create(mockedProductDto, mockedFile),
       ).resolves.toEqual(mockedProduct);
-      expect(findSpy).toHaveBeenCalledWith(mockedCreateProductDto.name);
+      expect(findSpy).toHaveBeenCalledWith(mockedProductDto.name);
     });
 
     it('should throw if find return an existing product', async () => {
       const mockedProduct = {
         id: 1,
-        ...mockedCreateProductDto,
+        ...mockedProductDto,
         image: 'image-1.jpg',
       } as unknown as Product;
       jest.spyOn(productRepository, 'find').mockResolvedValue(mockedProduct);
       const createSpy = jest.spyOn(productRepository, 'create');
       await expect(
-        service.create(mockedCreateProductDto, mockedFile),
+        service.create(mockedProductDto, mockedFile),
       ).rejects.toThrow(BadRequestException);
       expect(createSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('update', () => {
+    it('should return an updated product', async () => {
+      const mockedProduct = {
+        id: 1,
+        ...mockedProductDto,
+        image: 'image-1.jpg',
+      } as unknown as Product;
+      const mockedId = 1;
+      const findSpy = jest
+        .spyOn(productRepository, 'find')
+        .mockResolvedValue(mockedProduct);
+      jest.spyOn(productRepository, 'update').mockResolvedValue(mockedProduct);
+      await expect(service.update(mockedProductDto, mockedId)).resolves.toEqual(
+        mockedProduct,
+      );
+      expect(findSpy).toHaveBeenCalledWith(mockedId);
+    });
+
+    it('should throw if find return null', async () => {
+      const mockedId = 1;
+      jest.spyOn(productRepository, 'find').mockResolvedValue(null);
+      const updateSpy = jest.spyOn(productRepository, 'update');
+      await expect(service.update(mockedProductDto, mockedId)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(updateSpy).not.toHaveBeenCalled();
     });
   });
 });
