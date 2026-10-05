@@ -5,14 +5,14 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 
+jest.mock('node:path');
+jest.doMock('node:fs/promises');
+
 import { ProductService } from './product.service';
 import { mockedQueryRunner } from '../utils/mocks.utils';
 import { ProductRepository } from './repositories/product.repository';
 import { Paginator } from '../utils/paginator/paginator';
 import { Product } from './entities/product.entity';
-
-jest.mock('node:path');
-jest.mock('node:fs/promises');
 
 const mockedPaginator = {
   query: '',
@@ -181,6 +181,36 @@ describe('ProductService', () => {
       jest.spyOn(productRepository, 'find').mockResolvedValue(null);
       const updateSpy = jest.spyOn(productRepository, 'update');
       await expect(service.update(mockedProductDto, mockedId)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(updateSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('changeImage', () => {
+    it('should return a new path when the image is uploaded', async () => {
+      const mockedProduct = {
+        id: 1,
+        ...mockedProductDto,
+      } as unknown as Product;
+      const mockedId = 1;
+      const findSpy = jest
+        .spyOn(productRepository, 'find')
+        .mockResolvedValueOnce(mockedProduct);
+      jest
+        .spyOn(productRepository, 'update')
+        .mockResolvedValueOnce(mockedProduct);
+      await expect(
+        service.changeImage(mockedId, mockedFile),
+      ).resolves.toBeDefined();
+      expect(findSpy).toHaveBeenCalledWith(mockedId);
+    });
+
+    it('should throw if find return null', async () => {
+      const mockedId = 1;
+      jest.spyOn(productRepository, 'find').mockResolvedValueOnce(null);
+      const updateSpy = jest.spyOn(productRepository, 'update');
+      await expect(service.changeImage(mockedId, mockedFile)).rejects.toThrow(
         BadRequestException,
       );
       expect(updateSpy).not.toHaveBeenCalled();
