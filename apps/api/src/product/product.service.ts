@@ -176,7 +176,8 @@ export class ProductService {
       if (!existingProduct)
         throw new ApplicationException('Product not recognized');
 
-      await unlink(existingProduct.image);
+      if (existingProduct.image) await unlink(existingProduct.image);
+
       newImagePath = await this._uploadFile(file);
       await this._productRepository.update(queryRunner, existingProduct, {
         image: newImagePath,
@@ -190,6 +191,9 @@ export class ProductService {
       await queryRunner.release();
 
       if (newImagePath) await unlink(newImagePath);
+
+      if (error instanceof ApplicationException)
+        throw new BadRequestException(error.message);
 
       this._logger.error(
         error instanceof Error ? error.message : JSON.stringify(error),
