@@ -24,6 +24,7 @@ import {
   makeFirstLetterUppercase,
 } from '../../../lib/utils/helpers.utils';
 import { Paginator } from '../../../components/organisms/paginator/Paginator';
+import { SubHeader } from '../../../components/atoms/sub-header/SubHeader';
 
 export default function Incentives(): React.JSX.Element {
   const dispatch = useAppDispatch();
@@ -93,7 +94,7 @@ export default function Incentives(): React.JSX.Element {
         message={alertInfo?.message}
         onToggle={hideAlert}
       />
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 my-4 md:mb-6">
+      <SubHeader>
         <Breadcrumb>
           <Breadcrumb.Item path="/dashboard">Dashboard</Breadcrumb.Item>
           <Breadcrumb.Separator />
@@ -108,7 +109,7 @@ export default function Incentives(): React.JSX.Element {
         >
           Add Incentive
         </Button>
-      </div>
+      </SubHeader>
       <DataTable columnHeadlines={['Date Added', 'Point', 'Award', 'Action']}>
         {incentiveState.data.map((item) => (
           <DataTable.Row key={item.id}>
