@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router';
+import {
+  useLocation,
+  useNavigate,
+  useSearchParams,
+  type NavigateFunction,
+} from 'react-router';
 import { AnimatePresence } from 'motion/react';
 import { motion } from 'motion/react';
 import {
@@ -17,18 +22,63 @@ import {
   extractPaginationFromQueryParams,
 } from '../../../lib/utils/helpers.utils';
 
-type PaginatorProps = {
+type ControllerProps = {
   className?: string;
   count: number;
+  pathname: string;
+  searchParams: URLSearchParams;
+  perPage: number;
+  page: number;
+  navigate: NavigateFunction;
 };
 
 export function Paginator({
   className,
   count,
-}: PaginatorProps): React.JSX.Element {
+}: Pick<ControllerProps, 'count' | 'className'>): React.JSX.Element | null {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
+
+  const page = Number(searchParams.get('page') ?? 1);
+  const perPage = Number(searchParams.get('perPage') ?? 15);
+
+  if (Number.isNaN(page) || Number.isNaN(perPage)) {
+    return (
+      <Alert variant="danger">
+        <Alert.Message>Invalid page or per page</Alert.Message>
+      </Alert>
+    );
+  }
+
+  if (perPage > count) {
+    return null;
+  }
+
+  return (
+    <Controller
+      count={count}
+      className={className}
+      navigate={navigate}
+      pathname={pathname}
+      searchParams={searchParams}
+      page={page}
+      perPage={perPage}
+    />
+  );
+}
+
+const PER_PAGES = [15, 30, 50, 100];
+
+function Controller({
+  count,
+  page,
+  perPage,
+  className,
+  pathname,
+  navigate,
+  searchParams,
+}: ControllerProps): React.JSX.Element | null {
   const [showMenu, setShowMenu] = useState(false);
 
   useOutsideClick((): void => {
@@ -57,18 +107,6 @@ export function Paginator({
     navigate(`${pathname}?${constructPaginationString(pagination)}`);
     setShowMenu(false);
   };
-
-  const page = Number(searchParams.get('page') ?? 1);
-  const perPage = Number(searchParams.get('perPage') ?? 15);
-  const perPages = [15, 30, 50, 100];
-
-  if (Number.isNaN(page) || Number.isNaN(perPage)) {
-    return (
-      <Alert variant="danger">
-        <Alert.Message>Invalid page or per page</Alert.Message>
-      </Alert>
-    );
-  }
 
   return (
     <div
@@ -99,7 +137,7 @@ export function Paginator({
           <AnimatePresence>
             {showMenu && (
               <motion.div className="absolute left-0 bottom-10 bg-white p-1 rounded-md border border-gray-200 flex flex-col gap-1 w-35.75">
-                {perPages.map((item) => (
+                {PER_PAGES.map((item) => (
                   <button
                     key={item.toString()}
                     onClick={() => handlePerPage(item)}
