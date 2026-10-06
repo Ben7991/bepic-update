@@ -30,7 +30,10 @@ import {
 } from '../../../store/slice/auth/auth.slice';
 import type { AlertPopupProps } from '../../../components/molecules/alert-popup/AlertPopup';
 import { mutate } from '../../../lib/http/http-request';
-import type { AlertComponentProps, ResponseWithOnlyMessage } from '../../../lib/utils/types.utils';
+import type {
+  AlertComponentProps,
+  ResponseWithOnlyMessage,
+} from '../../../lib/utils/types.utils';
 import { useNavigate } from 'react-router';
 import { signOut } from '../../../components/layouts/dashboard/Dashboard.utils';
 import { TogglePassword } from '../../../components/molecules/toggle-password/TogglePassword';
@@ -212,7 +215,7 @@ export function ChangePersonal({
         description="Manage your personal info"
       />
       <Form onSubmit={handleSubmit(onSubmit)}>
-        <Form.Group className="mb-3">
+        <Form.Group>
           <Form.Label htmlFor="firstName">First name</Form.Label>
           <Form.Control
             type="text"
@@ -224,7 +227,7 @@ export function ChangePersonal({
             <Form.Error>{errors.firstName?.message}</Form.Error>
           )}
         </Form.Group>
-        <Form.Group className="mb-5">
+        <Form.Group isLastGroup>
           <Form.Label htmlFor="lastName">Last name</Form.Label>
           <Form.Control
             type="text"
@@ -236,7 +239,7 @@ export function ChangePersonal({
             <Form.Error>{errors.lastName?.message}</Form.Error>
           )}
         </Form.Group>
-        <Form.Group className='flex justify-center'>
+        <Form.Group className="flex justify-center">
           <Button
             type="submit"
             variant="primary"
@@ -326,7 +329,7 @@ export function ChangePassword({
         description="Change your password here, after successful update the system will log you out to try out your new password."
       />
       <Form onSubmit={handleSubmit(onSubmit)}>
-        <Form.Group className="mb-3">
+        <Form.Group>
           <Form.Label htmlFor="currentPassword">Current Password</Form.Label>
           <Form.Control
             type={
@@ -346,7 +349,7 @@ export function ChangePassword({
             <Form.Error>{errors.currentPassword?.message}</Form.Error>
           )}
         </Form.Group>
-        <Form.Group className="mb-3">
+        <Form.Group>
           <Form.Label htmlFor="newPassword">New password</Form.Label>
           <Form.Control
             type={passwordVisible.isNewPasswordVisible ? 'text' : 'password'}
@@ -364,7 +367,7 @@ export function ChangePassword({
             <Form.Error>{errors.newPassword?.message}</Form.Error>
           )}
         </Form.Group>
-        <Form.Group className="mb-5">
+        <Form.Group isLastGroup>
           <Form.Label htmlFor="confirmPassword">Confirm password</Form.Label>
           <Form.Control
             type={
@@ -384,7 +387,7 @@ export function ChangePassword({
             <Form.Error>{errors.confirmPassword?.message}</Form.Error>
           )}
         </Form.Group>
-        <Form.Group className='flex justify-center'>
+        <Form.Group className="flex justify-center">
           <Button
             type="submit"
             variant="primary"

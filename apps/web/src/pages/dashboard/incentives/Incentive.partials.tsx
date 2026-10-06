@@ -69,7 +69,10 @@ export function IncentiveForm({
     let message = '',
       variant: AlertPopupProps['variant'] = 'success';
 
-    const preferredIncentive = getPreferredIncentive(incentives, idInSearchParams);
+    const preferredIncentive = getPreferredIncentive(
+      incentives,
+      idInSearchParams,
+    );
     let result: ResponseWithDataAndMessage<Incentive> | undefined;
 
     try {
@@ -102,7 +105,9 @@ export function IncentiveForm({
     }
   };
 
-  const handleDeleteSubmit = async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
+  const handleDeleteSubmit = async (
+    event: SubmitEvent<HTMLFormElement>,
+  ): Promise<void> => {
     event.preventDefault();
     toggleLoading();
 
@@ -112,9 +117,9 @@ export function IncentiveForm({
     try {
       const parsedId = Number(idInSearchParams);
       const result = await destroy(`incentives/${parsedId}`);
-      dispatch(removeIncentive(parsedId))
-      message = result.message
-    } catch(error) {
+      dispatch(removeIncentive(parsedId));
+      message = result.message;
+    } catch (error) {
       console.error('Error encountered: ', error);
       message = (error as Error).message;
       variant = 'danger';
@@ -124,9 +129,8 @@ export function IncentiveForm({
       onShowAlert();
     }
 
-    if (variant === 'success')
-      onHideModal();
-  }
+    if (variant === 'success') onHideModal();
+  };
 
   if (hasParamsError) {
     return (
@@ -169,7 +173,7 @@ export function IncentiveForm({
 
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
-      <Form.Group className="mb-3">
+      <Form.Group>
         <Form.Label htmlFor="point">Point</Form.Label>
         <Form.Control
           type="number"
@@ -181,7 +185,7 @@ export function IncentiveForm({
           <Form.Error>{errors.point?.message}</Form.Error>
         )}
       </Form.Group>
-      <Form.Group className="mb-5">
+      <Form.Group isLastGroup>
         <Form.Label htmlFor="award">Award</Form.Label>
         <Form.Control
           type="text"

@@ -104,7 +104,7 @@ function LoginForm({
 
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
-      <Form.Group className="mb-3">
+      <Form.Group>
         <Form.Label htmlFor="username">Username</Form.Label>
         <Form.Control
           type="text"
@@ -118,7 +118,7 @@ function LoginForm({
           <Form.Error>{errors.username?.message}</Form.Error>
         )}
       </Form.Group>
-      <Form.Group className="mb-3">
+      <Form.Group isLastGroup>
         <Form.Label htmlFor="password">Password</Form.Label>
         <Form.Control
           type="password"
