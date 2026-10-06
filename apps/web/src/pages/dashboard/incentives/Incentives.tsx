@@ -141,10 +141,7 @@ export default function Incentives(): React.JSX.Element {
           </DataTable.Row>
         ))}
       </DataTable>
-      <Paginator>
-        <Paginator.PerPage count={incentiveState.count} />
-        <Paginator.Page count={incentiveState.count} />
-      </Paginator>
+      <Paginator count={incentiveState.count} />
       <Modal
         title={`${makeFirstLetterUppercase(action ?? undefined)} Incentive`}
         state={Boolean(action)}
