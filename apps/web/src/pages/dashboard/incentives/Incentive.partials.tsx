@@ -5,7 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 
 import { Button } from '../../../components/atoms/button/Button';
 import { Form } from '../../../components/atoms/form/Form';
-import { getPreferredIncentive, incentiveSchema } from './Incentives.utils';
+import { incentiveSchema } from './Incentives.utils';
 import { useToggle } from '../../../lib/hooks/use-toggle/useToggle';
 import { destroy, mutate } from '../../../lib/http/http-request';
 import type { ResponseWithDataAndMessage } from '../../../lib/utils/types.utils';
@@ -22,6 +22,7 @@ import {
 } from '../../../store/slice/incentives/incentive.slice';
 import type { AlertPopupProps } from '../../../components/molecules/alert-popup/AlertPopup';
 import { Alert } from '../../../components/molecules/alert/Alert';
+import { findItemById } from '../../../lib/utils/helpers.utils';
 
 export function IncentiveForm({
   action,
@@ -50,7 +51,7 @@ export function IncentiveForm({
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setHasParamsError((prevValue) => !prevValue);
     } else {
-      const preferredIncentive = getPreferredIncentive(
+      const preferredIncentive = findItemById<Incentive>(
         incentives,
         idInSearchParams,
       );
@@ -69,7 +70,7 @@ export function IncentiveForm({
     let message = '',
       variant: AlertPopupProps['variant'] = 'success';
 
-    const preferredIncentive = getPreferredIncentive(
+    const preferredIncentive = findItemById<Incentive>(
       incentives,
       idInSearchParams,
     );
@@ -81,10 +82,10 @@ export function IncentiveForm({
         preferredIncentive
           ? `incentives/${preferredIncentive.id}`
           : 'incentives',
-        {
+        JSON.stringify({
           ...data,
           point: Number(data.point),
-        },
+        }),
       );
 
       if (preferredIncentive) dispatch(updateIncentive(result.data));
@@ -105,33 +106,6 @@ export function IncentiveForm({
     }
   };
 
-  const handleDeleteSubmit = async (
-    event: SubmitEvent<HTMLFormElement>,
-  ): Promise<void> => {
-    event.preventDefault();
-    toggleLoading();
-
-    let message = '',
-      variant: AlertPopupProps['variant'] = 'success';
-
-    try {
-      const parsedId = Number(idInSearchParams);
-      const result = await destroy(`incentives/${parsedId}`);
-      dispatch(removeIncentive(parsedId));
-      message = result.message;
-    } catch (error) {
-      console.error('Error encountered: ', error);
-      message = (error as Error).message;
-      variant = 'danger';
-    } finally {
-      toggleLoading();
-      onSetAlertInfo({ message, variant });
-      onShowAlert();
-    }
-
-    if (variant === 'success') onHideModal();
-  };
-
   if (hasParamsError) {
     return (
       <Alert headline="Eror in url params" variant="danger">
@@ -148,26 +122,12 @@ export function IncentiveForm({
 
   if (action === 'delete') {
     return (
-      <Form onSubmit={handleDeleteSubmit}>
-        <p className="mb-3">
-          Are you sure you want to delete this incentive?. Please note that once
-          you do, it will not be available in the application any longer but
-          will be visible in all other related parts of the application.
-        </p>
-        <p className="mb-4">
-          <strong>NB:</strong> you re-add it again anytime you want and it will
-          be visible in all other related parts of the application
-        </p>
-        <Button
-          el="button"
-          variant="danger"
-          className="flex! items-center gap-1"
-          loading={isLoading}
-        >
-          <Save width={16} height={16} />
-          <span>Yes, please it delete already</span>
-        </Button>
-      </Form>
+      <DeleteIncentiveForm
+        idInSearchParams={idInSearchParams}
+        onHideModal={onHideModal}
+        onSetAlertInfo={onSetAlertInfo}
+        onShowAlert={onShowAlert}
+      />
     );
   }
 
@@ -205,6 +165,69 @@ export function IncentiveForm({
       >
         <Save width={16} height={16} />
         <span>Submit</span>
+      </Button>
+    </Form>
+  );
+}
+
+function DeleteIncentiveForm({
+  idInSearchParams,
+  onHideModal,
+  onShowAlert,
+  onSetAlertInfo,
+}: Pick<
+  IncentiveFormProps,
+  'idInSearchParams' | 'onSetAlertInfo' | 'onShowAlert' | 'onHideModal'
+>): React.JSX.Element {
+  const dispatch = useAppDispatch();
+  const { show: isLoading, toggle: toggleLoading } = useToggle();
+
+  const handleDeleteSubmit = async (
+    event: SubmitEvent<HTMLFormElement>,
+  ): Promise<void> => {
+    event.preventDefault();
+    toggleLoading();
+
+    let message = '',
+      variant: AlertPopupProps['variant'] = 'success';
+
+    try {
+      const parsedId = Number(idInSearchParams);
+      const result = await destroy(`incentives/${parsedId}`);
+      dispatch(removeIncentive(parsedId));
+      message = result.message;
+    } catch (error) {
+      console.error('Error encountered: ', error);
+      message = (error as Error).message;
+      variant = 'danger';
+    } finally {
+      toggleLoading();
+      onSetAlertInfo({ message, variant });
+      onShowAlert();
+    }
+
+    if (variant === 'success') onHideModal();
+  };
+
+  return (
+    <Form onSubmit={handleDeleteSubmit}>
+      <p className="mb-3">
+        Are you sure you want to delete this incentive?. Please note that once
+        you do, it will not be available in the application any longer but will
+        be visible in all other related parts of the application.
+      </p>
+      <p className="mb-4">
+        <strong>NB:</strong> you re-add it again anytime you want and it will be
+        visible in all other related parts of the application
+      </p>
+      <Button
+        el="button"
+        variant="danger"
+        className="flex! items-center gap-1"
+        loading={isLoading}
+      >
+        <Save width={16} height={16} />
+        <span>Yes, please it delete already</span>
       </Button>
     </Form>
   );

@@ -185,9 +185,9 @@ export function ChangePersonal({
       const result = await mutate<ResponseWithOnlyMessage>(
         'POST',
         'auth/personal-info',
-        {
+        JSON.stringify({
           name: fullName,
-        },
+        }),
       );
       message = result.message;
       dispatch(
@@ -282,7 +282,11 @@ export function ChangePassword({
     setIsLoading(true);
 
     try {
-      await mutate<ResponseWithOnlyMessage>('POST', 'auth/password', data);
+      await mutate<ResponseWithOnlyMessage>(
+        'POST',
+        'auth/password',
+        JSON.stringify(data),
+      );
       await signOut();
       dispatch(removeAuthUser());
       navigate('/');
