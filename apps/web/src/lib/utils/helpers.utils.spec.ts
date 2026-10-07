@@ -1,6 +1,7 @@
 import {
   constructPaginationString,
   extractPaginationFromQueryParams,
+  findItemById,
   makeDigitHumanReadable,
   makeFirstLetterUppercase,
 } from './helpers.utils';
@@ -128,6 +129,27 @@ describe('helpers.utils.ts', () => {
       const searchParams = constructSearchParams(undefined, undefined, 10);
       const pagination = extractPaginationFromQueryParams(searchParams);
       expect(constructPaginationString(pagination)).toMatch('page=10');
+    });
+  });
+
+  describe('findItemById', () => {
+    it('should return the expected result if found in the list', () => {
+      const mockedProduct = [
+        { id: '1', value: 'a' },
+        { id: '2', value: 'b' },
+        { id: '3', value: 'c' },
+      ];
+      const mockedId = '1';
+      expect(findItemById(mockedProduct, mockedId)).toEqual({
+        id: '1',
+        value: 'a',
+      });
+    });
+
+    it('should return null if id is not found in the list', () => {
+      const mockedProduct = [{ id: '1', value: 'a' }];
+      const mockedId = '4';
+      expect(findItemById(mockedProduct, mockedId)).toBeUndefined();
     });
   });
 });
