@@ -47,7 +47,6 @@ export class Product {
 
   @Column({
     type: 'smallint',
-    unique: true,
   })
   point: number;
 }
