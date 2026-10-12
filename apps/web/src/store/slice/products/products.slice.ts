@@ -43,16 +43,6 @@ const productSlice = createSlice({
       );
       state.data[preferredProductIndex] = action.payload;
     },
-    removeProduct: (
-      state: ProductState,
-      action: PayloadAction<number>,
-    ): void => {
-      const preferredProductIndex = state.data.findIndex(
-        (item) => item.id === action.payload,
-      );
-      const deleteCount = 1;
-      state.data.splice(preferredProductIndex, deleteCount);
-    },
     setProductError: (
       state: ProductState,
       action: PayloadAction<Required<Pick<ProductState, 'errorMessage'>>>,
@@ -63,11 +53,6 @@ const productSlice = createSlice({
   },
 });
 
-export const {
-  loadProducts,
-  addProduct,
-  updateProduct,
-  removeProduct,
-  setProductError,
-} = productSlice.actions;
+export const { loadProducts, addProduct, updateProduct, setProductError } =
+  productSlice.actions;
 export default productSlice.reducer;
