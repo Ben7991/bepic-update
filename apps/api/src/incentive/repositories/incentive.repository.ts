@@ -13,8 +13,8 @@ export class IncentiveRepository {
   constructor(private readonly _dataSource: DataSource) {}
 
   /**
-   * Returns a queryBuilder for communicating to the `users` table
-   * @returns a user queryBuilder
+   * Returns a queryBuilder for communicating to the `incentives` table
+   * @returns a incentives queryBuilder
    */
   private _createQueryBuilder(): SelectQueryBuilder<Incentive> {
     return this._dataSource.createQueryBuilder(Incentive, 'incentives');

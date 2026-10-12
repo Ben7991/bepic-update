@@ -105,8 +105,9 @@ export class IncentiveService {
 
   /**
    * Handles incentive data update, specifically the point and award fields
-   * @param {IncentiveDto} body - the request body
-   * @returns newly added incentive data
+   * @param body - the request body
+   * @param id - the id of the incentive to update
+   * @returns an update incentive data
    */
   async update(body: IncentiveDto, id: number): Promise<Incentive> {
     const queryRunner = this._dataSource.createQueryRunner();

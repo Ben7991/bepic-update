@@ -100,3 +100,20 @@ export function constructPaginationString(pagination: PaginationType): string {
 
   return result;
 }
+
+/**
+ * Find item by id from a list of items provided
+ *
+ * @param items
+ * @param id
+ * @returns the found item by id
+ */
+export function findItemById<T extends { id: string | number }>(
+  items: Array<T>,
+  id: string | null,
+): T | undefined {
+  if (!id) return undefined;
+
+  const parsedId = Number(id);
+  return items.find((item) => Number(item.id) === parsedId);
+}

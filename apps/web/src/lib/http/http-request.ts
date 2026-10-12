@@ -17,15 +17,13 @@ export async function mutate<T>(
   endpoint: string,
   data: unknown,
 ): Promise<T> {
-  const response = await fetch(
-    `${import.meta.env.VITE_BASE_API}/${endpoint}`,
-    {
-      method: mutation,
-      body: JSON.stringify(data),
-      headers: getHeaders(true),
-      credentials: 'include',
-    },
-  );
+  const response = await fetch(`${import.meta.env.VITE_BASE_API}/${endpoint}`, {
+    method: mutation,
+    body: data as FormData | string,
+    headers:
+      data instanceof FormData ? getHeaders(true) : getHeaders(true, true),
+    credentials: 'include',
+  });
   const result = await response.json();
 
   if (response.status === StatusCodes.UN_AUTHORIZED) {

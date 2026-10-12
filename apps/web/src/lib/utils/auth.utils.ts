@@ -25,12 +25,16 @@ export function getAccessToken(): string {
 
 /**
  * Returns a configured HTTP Headers
- * @param {boolean|undefined} withAuth - should attach the authorization token
+ * @param withAuth - should attach the authorization token
+ * @param includeJson - should set a json content type
  * @returns an instance of the headers
  */
-export function getHeaders(withAuth?: boolean): Headers {
+export function getHeaders(withAuth?: boolean, includeJson?: boolean): Headers {
   const headers = new Headers();
-  headers.append('Content-Type', 'application/json');
+
+  if (includeJson) {
+    headers.append('Content-Type', 'application/json');
+  }
 
   if (withAuth) {
     headers.append('authorization', `Bearer ${getAccessToken()}`);
